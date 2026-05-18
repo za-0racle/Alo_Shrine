@@ -104,7 +104,6 @@ export const authActions = {
         if (error) throw error;
         currentUserCache = null;
         currentUserPromise = null;
-        window.location.reload();
     },
 
     // Return the logged-in user together with their latest public profile row.

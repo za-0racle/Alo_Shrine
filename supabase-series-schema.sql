@@ -1,27 +1,38 @@
-alter table public.posts
-  add column if not exists story_format text not null default 'standalone',
-  add column if not exists series_title text,
-  add column if not exists episode_title text,
-  add column if not exists episode_number integer,
-  add column if not exists release_cadence text;
-
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'posts_story_format_check'
-  ) then
-    alter table public.posts
-      add constraint posts_story_format_check
-      check (story_format in ('standalone', 'series'))
-      not valid;
-  end if;
-end $$;
+create table if not exists public.series (
+  id bigserial primary key,
+  author_id uuid references public.profiles(id) on delete cascade not null,
+  title text not null,
+  description text,
+  cover_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
 alter table public.posts
-  validate constraint posts_story_format_check;
+  add column if not exists series_id bigint references public.series(id) on delete set null,
+  add column if not exists series_order integer;
+
+alter table public.series enable row level security;
+
+drop policy if exists "Series are viewable by everyone" on public.series;
+drop policy if exists "Writers can create their own series" on public.series;
+drop policy if exists "Writers can update their own series" on public.series;
+
+create policy "Series are viewable by everyone"
+on public.series for select
+using (true);
+
+create policy "Writers can create their own series"
+on public.series for insert
+with check (auth.uid() = author_id);
+
+create policy "Writers can update their own series"
+on public.series for update
+using (auth.uid() = author_id)
+with check (auth.uid() = author_id);
 
 create index if not exists posts_series_lookup_idx
-  on public.posts (series_title, episode_number)
-  where story_format = 'series';
+  on public.posts (series_id, series_order)
+  where series_id is not null;
+
+create index if not exists series_author_title_idx
+  on public.series (author_id, lower(title));

@@ -8,6 +8,8 @@ const enterBtn = document.querySelector("#enter-btn");
 const hero = document.querySelector("#hero");
 const content = document.querySelector("#shrine-content");
 const storyGrid = document.querySelector("#story-grid");
+const appLoading = document.querySelector("#app-loading");
+const appLoadingText = document.querySelector("#app-loading-text");
 
 // Auth modal elements.
 const authModal = document.querySelector("#auth-modal");
@@ -38,6 +40,21 @@ const oracleContentList = document.querySelector("#oracle-content-list");
 const stageCount = document.querySelector("#stage-count");
 const publicViews = document.querySelectorAll(".public-view");
 const writerPostsGrid = document.querySelector("#writer-posts-grid");
+const writerPostsLabel = document.querySelector("#writer-posts-label");
+const writerVisionsGrid = document.querySelector("#writer-visions-grid");
+const shrineScreenView = document.querySelector("#shrine-screen-view");
+const openScreenBtn = document.querySelector("#open-screen");
+const exitScreenBtn = document.querySelector("#exit-screen");
+const screenPreviewGrid = document.querySelector("#screen-preview-grid");
+const videoGrid = document.querySelector("#video-grid");
+const videoModal = document.querySelector("#video-modal");
+const videoPlayerContainer = document.querySelector("#video-player-container");
+const closeVideoBtn = document.querySelector("#close-video");
+const dashboardTabs = document.querySelectorAll(".tab-btn");
+const visualSubmissionArea = document.querySelector("#visual-submission-area");
+const submitVisionBtn = document.querySelector("#submit-vision");
+const visualTitle = document.querySelector("#visual-title");
+const visualUrl = document.querySelector("#visual-url");
 
 // Inkwell editor elements.
 const editorView = document.querySelector("#editor-view");
@@ -61,64 +78,26 @@ const addImageBtn = document.querySelector("#add-image");
 const addCoverBtn = document.querySelector("#add-cover");
 const addYoutubeBtn = document.querySelector("#add-youtube");
 
-// First series broken out from MY YELLOW BUS GIST chapter headings.
-const starterSeriesEpisodes = [
-  {
-    id: "yellow-bus-1",
-    type: "story",
-    title: "IN THE BEGINNING",
-    series_title: "MY YELLOW BUS GIST",
-    episode_title: "IN THE BEGINNING",
-    episode_number: 1,
-    release_cadence: "weekly",
-    authorName: "Alo Shrine",
-    content:
-      "The sun hung lazily in the sky, casting a dusty golden hue over Sango Toll Gate. The air smelled of exhaust fumes, roasted plantain, and impatience. Hawkers weaved through the traffic, their voices merging into an indistinct chorus of desperation and salesmanship. Amidst the commotion, he stood at the edge of the road, gripping his worn-out backpack, waiting for the next available danfo.",
-  },
-  {
-    id: "yellow-bus-2",
-    type: "story",
-    title: "TENSION IN THE AIR",
-    series_title: "MY YELLOW BUS GIST",
-    episode_title: "TENSION IN THE AIR",
-    episode_number: 2,
-    release_cadence: "weekly",
-    authorName: "Alo Shrine",
-    content:
-      "The bus rocked forward, jolting the passengers as the driver swerved through the relentless Lagos traffic. The political argument had reached a fever pitch, voices clashing and overlapping like a chaotic symphony. The man in the faded vintage shirt was still shaking his head, muttering about the outrageous fare, while the bespectacled man had resorted to slapping his newspaper against his palm for emphasis.",
-  },
-  {
-    id: "yellow-bus-3",
-    type: "story",
-    title: "CHAOSON THE ROAD",
-    series_title: "MY YELLOW BUS GIST",
-    episode_title: "CHAOSON THE ROAD",
-    episode_number: 3,
-    release_cadence: "weekly",
-    authorName: "Alo Shrine",
-    content:
-      "Just when the bus seemed to be settling into an uneasy silence again, with everyone nursing their thoughts and warily eyeing their neighbors, another moment of madness arrived. The danfo wobbled slightly as the driver swerved to avoid a keke that had cut into his lane without warning.",
-  },
-  {
-    id: "yellow-bus-4",
-    type: "story",
-    title: "MONEY IN THE MIX",
-    series_title: "MY YELLOW BUS GIST",
-    episode_title: "MONEY IN THE MIX",
-    episode_number: 4,
-    release_cadence: "weekly",
-    authorName: "Alo Shrine",
-    content:
-      "The danfo had barely steadied from its last wave of chaos when the bus jerked to a stop at Ikeja Along. A few passengers sighed in relief, shuffled their way off, and vanished into the crowd outside. With new faces came new energy, and one of the new entrants settled beside Tobi, grinning like someone with a secret.",
-  },
-];
-
 let isSignUpMode = true;
 let currentEditingPostId = null;
 let currentEditingPostWasSeries = false;
+let currentEditingVisionId = null;
+let currentOpenPostId = null;
+
+const setAppLoading = (isLoading, message = "Opening the shrine...") => {
+  if (!appLoading) return;
+  appLoadingText.textContent = message;
+  appLoading.classList.toggle("hidden", !isLoading);
+};
+
+const setAuthSubmitting = (isSubmitting, message = "àlọ́") => {
+  authSubmit.disabled = isSubmitting;
+  authSubmit.classList.toggle("is-loading", isSubmitting);
+  authSubmit.textContent = isSubmitting ? message : isSignUpMode ? "Begin Journey" : "Step Inside";
+};
 
 const getStoryFormat = (post = null) =>
-  post?.story_format || (post?.series_title ? "series" : "standalone");
+  post?.series_id || post?.series ? "series" : post?.story_format || "standalone";
 
 const getActiveStoryFormat = () =>
   document.querySelector('input[name="story-format"]:checked')?.value || "standalone";
@@ -128,16 +107,21 @@ const setActiveStoryFormat = (format) => {
     input.checked = input.value === format;
   });
   seriesFields.classList.toggle("hidden", format !== "series");
+  postTitle.classList.toggle("hidden", format === "series");
+  postTitle.required = format !== "series";
 };
 
 const getSeriesLabel = (post) => {
   if (getStoryFormat(post) !== "series") return post.type || "story";
 
-  const number = post.episode_number ? `Episode ${post.episode_number}` : "Episode";
-  return `${post.series_title || "Untitled series"} - ${number}`;
+  const number = post.series_order ? `Episode ${post.series_order}` : "Episode";
+  return `${post.series?.title || "Untitled series"} - ${number}`;
 };
 
-const getDisplayTitle = (post) => post.episode_title || post.title || "Untitled offering";
+const getDisplayTitle = (post) => post.title || "Untitled offering";
+
+const isMissingColumnError = (error, columnName) =>
+  Boolean(error?.message?.toLowerCase().includes(columnName.toLowerCase()));
 
 const isAdminUser = (user) => {
   const role = user?.profile?.role || user?.user_metadata?.role || user?.app_metadata?.role;
@@ -188,6 +172,15 @@ const isSafeUrl = (value) => {
   try {
     const url = new URL(value, window.location.origin);
     return ["http:", "https:", "mailto:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
+
+const isSafeMediaUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
   } catch {
     return false;
   }
@@ -288,6 +281,30 @@ const insertRichHtml = (html) => {
   runEditorCommand("insertHTML", html);
 };
 
+const pickImageFile = () =>
+  new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener(
+      "change",
+      () => {
+        const file = input.files?.[0] || null;
+        resolve(file);
+      },
+      { once: true },
+    );
+    input.click();
+  });
+
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", () => reject(reader.error));
+    reader.readAsDataURL(file);
+  });
+
 const getAuthorProfiles = async (posts) => {
   const authorIds = [...new Set(posts.map((post) => post.author_id).filter(Boolean))];
 
@@ -318,7 +335,7 @@ const getStoryExcerpt = (post) => {
 const getPublicOfferings = async () => {
   const { data: posts = [], error } = await supabase
     .from("posts")
-    .select("*")
+    .select("*, series(id, title, cover_url)")
     .in("status", ["published", "featured"])
     .order("created_at", { ascending: false });
 
@@ -329,10 +346,10 @@ const getPublicOfferings = async () => {
       hint: error.hint,
       code: error.code,
     });
-    return starterSeriesEpisodes;
+    return [];
   }
 
-  if (!posts.length) return starterSeriesEpisodes;
+  if (!posts.length) return [];
 
   const profilesById = await getAuthorProfiles(posts);
   return posts.map((post) => ({
@@ -396,14 +413,16 @@ const scrollToSection = (selector) => {
   target?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
-// Switch between public shrine pages, private dashboard, reader, and admin.
+// Switch between public shrine pages, private dashboard, reader, screen, and admin.
 const showView = async (viewName, targetSelector = "#home") => {
   const showingDashboard = viewName === "dashboard";
   const showingAdmin = viewName === "admin";
+  const showingScreen = viewName === "screen";
 
-  publicViews.forEach((view) => view.classList.toggle("hidden", showingDashboard || showingAdmin));
+  publicViews.forEach((view) => view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen));
   dashboardView.classList.toggle("hidden", !showingDashboard);
   adminView.classList.toggle("hidden", !showingAdmin);
+  shrineScreenView?.classList.toggle("hidden", !showingScreen);
   readerView?.classList.add("hidden");
   document.body.classList.remove("focus-mode");
   document.body.style.overflow = "auto";
@@ -428,6 +447,12 @@ const showView = async (viewName, targetSelector = "#home") => {
     return;
   }
 
+  if (showingScreen) {
+    await loadShrineScreen();
+    scrollToSection("#shrine-screen-view");
+    return;
+  }
+
   scrollToSection(targetSelector);
 };
 
@@ -446,7 +471,7 @@ const renderAuthMode = () => {
   authFullName.required = isSignUpMode;
   authTitle.textContent = isSignUpMode ? "Enter the Circle" : "Welcome Back";
   authSubtitle.textContent = isSignUpMode ? "Become a Keeper of Ink" : "Return to the Shrine";
-  authSubmit.textContent = isSignUpMode ? "Begin Journey" : "Step Inside";
+  setAuthSubmitting(false);
   authToggle.innerHTML = isSignUpMode
     ? 'Already a member? <span id="toggle-mode">Step Inside</span>'
     : 'New to the shrine? <span id="toggle-mode">Begin Journey</span>';
@@ -489,6 +514,79 @@ const renderWriterPosts = (posts) => {
   });
 };
 
+const editVision = (vision) => {
+  currentEditingVisionId = vision.id;
+  if (visualTitle) visualTitle.value = vision.title || "";
+  if (visualUrl) visualUrl.value = vision.url || "";
+  if (submitVisionBtn) submitVisionBtn.textContent = "Refine Vision";
+  visualSubmissionArea?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+const renderWriterVisions = (visions) => {
+  if (!writerVisionsGrid) return;
+
+  writerVisionsGrid.innerHTML = "";
+
+  if (!visions.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No visual visions yet.";
+    writerVisionsGrid.appendChild(emptyState);
+    return;
+  }
+
+  visions.forEach((vision) => {
+    const card = document.createElement("article");
+    const status = document.createElement("span");
+    const title = document.createElement("h3");
+    const meta = document.createElement("p");
+    const button = document.createElement("button");
+
+    card.className = "offering-card vision-card";
+    status.className = "offering-category";
+    title.className = "offering-title";
+    meta.className = "offering-meta";
+    button.className = "edit-btn";
+    button.type = "button";
+
+    status.textContent = "screen";
+    title.textContent = vision.title || "Untitled vision";
+    meta.textContent = vision.media_type || "visual vision";
+    button.textContent = "Refine Vision";
+    button.addEventListener("click", () => editVision(vision));
+
+    card.append(status, title, meta, button);
+    writerVisionsGrid.appendChild(card);
+  });
+};
+
+const getWriterVisions = async (authorId) => {
+  const { data: visions = [], error } = await supabase
+    .from("media")
+    .select("*")
+    .or(`author_id.eq.${authorId},author_id.is.null`)
+    .order("created_at", { ascending: false });
+
+  if (!error) return visions;
+
+  if (!isMissingColumnError(error, "author_id")) {
+    console.error("Error loading writer visions:", error);
+    return [];
+  }
+
+  const { data: legacyVisions = [], error: legacyError } = await supabase
+    .from("media")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (legacyError) {
+    console.error("Error loading legacy writer visions:", legacyError);
+    return [];
+  }
+
+  return legacyVisions;
+};
+
 // Load profile and post data for the logged-in writer.
 async function loadWriterDashboard() {
   const user = await authActions.getCurrentUser();
@@ -504,7 +602,7 @@ async function loadWriterDashboard() {
 
   const { data: posts = [], error } = await supabase
     .from("posts")
-    .select("*")
+    .select("*, series(id, title, cover_url)")
     .eq("author_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -513,8 +611,12 @@ async function loadWriterDashboard() {
     return;
   }
 
+  const visions = await getWriterVisions(user.id);
+
   renderWriterPosts(posts);
+  renderWriterVisions(visions);
   document.querySelector("#stat-works").textContent = posts.length;
+  document.querySelector("#stat-visions").textContent = visions.length;
   document.querySelector("#stat-likes").textContent = posts.reduce(
     (total, post) => total + (post.likes_count || post.likes || 0),
     0,
@@ -525,9 +627,13 @@ async function loadWriterDashboard() {
 async function initSession() {
   const user = await authActions.getCurrentUser();
 
-  if (!user) return null;
+  if (!user) {
+    document.querySelectorAll(".auth-only").forEach((el) => el.classList.add("hidden"));
+    navAdmin.classList.add("hidden");
+    navAuthTrigger.classList.remove("hidden");
+    return null;
+  }
 
-  console.log("Current Role:", user.profile?.role);
   document.querySelectorAll(".auth-only").forEach((el) => el.classList.remove("hidden"));
   navAdmin.classList.toggle("hidden", !isAdminUser(user));
   navAuthTrigger.classList.add("hidden");
@@ -605,12 +711,12 @@ const updateOracleStatus = async (postId, status) => {
 const resetEditor = (post = null) => {
   currentEditingPostId = post?.id || null;
   currentEditingPostWasSeries = getStoryFormat(post) === "series";
-  postType.value = post?.type || "story";
-  postTitle.value = post?.title || "";
+  postType.value = post?.type || "";
   setActiveStoryFormat(getStoryFormat(post));
-  seriesTitle.value = post?.series_title || "";
-  episodeTitle.value = post?.episode_title || "";
-  episodeNumber.value = post?.episode_number || "";
+  postTitle.value = getStoryFormat(post) === "series" ? "" : post?.title || "";
+  seriesTitle.value = post?.series?.title || "";
+  episodeTitle.value = getStoryFormat(post) === "series" ? post?.title || "" : "";
+  episodeNumber.value = post?.series_order || "";
   releaseCadence.value = post?.release_cadence || "weekly";
   postContent.innerHTML = normalizeStoredContent(post?.content || "");
 };
@@ -634,6 +740,26 @@ const closeEditor = () => {
   document.body.style.overflow = "auto";
 };
 
+const getOrCreateSeries = async ({ authorId, title }) => {
+  const { data: existingSeries, error: lookupError } = await supabase
+    .from("series")
+    .select("id, title")
+    .eq("author_id", authorId)
+    .ilike("title", title)
+    .limit(1);
+
+  if (lookupError) return { series: null, error: lookupError };
+  if (existingSeries?.[0]) return { series: existingSeries[0], error: null };
+
+  const { data: createdSeries, error: createError } = await supabase
+    .from("series")
+    .insert([{ author_id: authorId, title }])
+    .select("id, title")
+    .single();
+
+  return { series: createdSeries, error: createError };
+};
+
 // Save an offering as either a draft or a published post.
 const saveOffering = async (status) => {
   const user = await authActions.getCurrentUser();
@@ -644,22 +770,27 @@ const saveOffering = async (status) => {
     return;
   }
 
-  const title = postTitle.value.trim();
   const contentValue = sanitizeRichContent(postContent.innerHTML);
-  const type = postType.value;
+  const type = postType.value.toLowerCase().trim();
   const storyFormat = getActiveStoryFormat();
   const seriesName = seriesTitle.value.trim();
   const episodeName = episodeTitle.value.trim();
   const episodeNo = Number.parseInt(episodeNumber.value, 10);
+  const title = storyFormat === "series" ? episodeName || `${seriesName} Episode ${episodeNo || ""}`.trim() : postTitle.value.trim();
   const hasBody = postContent.textContent.trim() || postContent.querySelector("img, iframe");
+
+  if (!type) {
+    alert("Please choose a category for your offering.");
+    return;
+  }
 
   if (!title || !hasBody) {
     alert("Your offering cannot be empty.");
     return;
   }
 
-  if (storyFormat === "series" && (!seriesName || !episodeName || !episodeNo)) {
-    alert("Series episodes need a series title, episode number, and episode title.");
+  if (storyFormat === "series" && (!seriesName || !episodeNo)) {
+    alert("Series episodes need a series title and episode number.");
     return;
   }
 
@@ -677,24 +808,32 @@ const saveOffering = async (status) => {
     content: contentValue,
     type,
     status,
+    series_id: null,
+    series_order: 0,
   };
 
   if (storyFormat === "series") {
-    Object.assign(payload, {
-      story_format: "series",
-      series_title: seriesName,
-      episode_title: episodeName,
-      episode_number: episodeNo,
-      release_cadence: releaseCadence.value,
+    const { series, error: seriesError } = await getOrCreateSeries({
+      authorId: user.id,
+      title: seriesName,
     });
-  } else if (currentEditingPostWasSeries) {
+
+    if (seriesError || !series) {
+      publishBtn.disabled = false;
+      saveDraftBtn.disabled = false;
+      actionButton.textContent = originalLabel;
+      alert("The series could not be prepared: " + (seriesError?.message || "Unknown error"));
+      return;
+    }
+
     Object.assign(payload, {
-      story_format: "standalone",
-      series_title: null,
-      episode_title: null,
-      episode_number: null,
-      release_cadence: null,
+      series_id: series.id,
+      series_order: episodeNo,
     });
+  }
+
+  if (status === "published") {
+    console.log("Attempting to offer this payload to the shrine:", payload);
   }
 
   const { error } = currentEditingPostId
@@ -710,8 +849,8 @@ const saveOffering = async (status) => {
   actionButton.textContent = originalLabel;
 
   if (error) {
-    if (["story_format", "series_title", "episode_title", "episode_number", "release_cadence"].some((field) => error.message?.includes(field))) {
-      alert("Series support needs the new Supabase columns. Run the SQL in supabase-series-schema.sql, then try again.");
+    if (["series_id", "series_order", "series"].some((field) => error.message?.includes(field))) {
+      alert("Series support needs the new Supabase schema. Run your series table SQL, then try again.");
       return;
     }
 
@@ -760,11 +899,16 @@ authForm.addEventListener("submit", async (event) => {
   const password = authPassword.value;
   const fullName = authFullName.value.trim();
 
+  setAuthSubmitting(true);
+  setAppLoading(true, isSignUpMode ? "Preparing your inkwell..." : "Opening your inkwell...");
+
   try {
     if (isSignUpMode) {
       const { session } = await authActions.signUp(email, password, fullName);
 
       if (!session) {
+        setAuthSubmitting(false);
+        setAppLoading(false);
         alert("The invitation has been sent to your email. Confirm to enter.");
         return;
       }
@@ -786,6 +930,9 @@ authForm.addEventListener("submit", async (event) => {
     }
   } catch (error) {
     alert(error.message);
+  } finally {
+    setAuthSubmitting(false);
+    setAppLoading(false);
   }
 });
 
@@ -813,12 +960,30 @@ exitOracleBtn.addEventListener("click", (event) => {
 });
 
 logoutWriterBtn.addEventListener("click", async () => {
-  await authActions.signOut();
+  setAppLoading(true, "Closing your inkwell...");
+
+  try {
+    await authActions.signOut();
+    await initSession();
+    await showView("home", "#home");
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    setAppLoading(false);
+  }
 });
 
 goHome.addEventListener("click", (event) => {
   event.preventDefault();
   showView("home", "#home");
+});
+
+openScreenBtn?.addEventListener("click", () => {
+  showView("screen");
+});
+
+exitScreenBtn?.addEventListener("click", () => {
+  showView("home", "#screen");
 });
 
 // Editor controls.
@@ -829,6 +994,11 @@ saveDraftBtn.addEventListener("click", () => saveOffering("draft"));
 publishBtn.addEventListener("click", () => saveOffering("published"));
 storyFormatInputs.forEach((input) => {
   input.addEventListener("change", () => setActiveStoryFormat(getActiveStoryFormat()));
+});
+postType.addEventListener("change", () => {
+  if (postType.value === "series") {
+    setActiveStoryFormat("series");
+  }
 });
 toolbarButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -860,9 +1030,24 @@ addImageBtn.addEventListener("click", () => {
   insertRichHtml(`<figure><img src="${escapeHtml(imageUrl)}" alt=""></figure><p><br></p>`);
 });
 
-addCoverBtn.addEventListener("click", () => {
-  const imageUrl = prompt("Paste a cover photo URL");
-  if (!imageUrl || !isSafeImageUrl(imageUrl)) return;
+addCoverBtn.addEventListener("click", async () => {
+  const imageFile = await pickImageFile();
+  if (!imageFile) return;
+
+  if (!imageFile.type.startsWith("image/")) {
+    alert("Please choose an image file.");
+    return;
+  }
+
+  let imageUrl = "";
+  try {
+    imageUrl = await readFileAsDataUrl(imageFile);
+  } catch {
+    alert("That cover image could not be opened.");
+    return;
+  }
+
+  if (!isSafeImageUrl(imageUrl)) return;
 
   postContent.insertAdjacentHTML(
     "afterbegin",
@@ -884,22 +1069,10 @@ addYoutubeBtn.addEventListener("click", () => {
   `);
 });
 
-// Initial page setup.
-document.body.style.overflowY = "hidden";
-renderFeaturedStories();
-renderAuthMode();
-initSession();
-
-
 const getPostWithAuthorProfile = async (postId) => {
-  const starterEpisode = starterSeriesEpisodes.find((episode) => episode.id === postId);
-  if (starterEpisode) {
-    return { post: { ...starterEpisode, profiles: { full_name: starterEpisode.authorName } }, error: null };
-  }
-
   const { data: post, error } = await supabase
     .from("posts")
-    .select("*")
+    .select("*, series(id, title, cover_url)")
     .eq("id", postId)
     .maybeSingle();
 
@@ -939,9 +1112,11 @@ async function openStory(postId) {
   const readerView = document.querySelector("#reader-view");
   if (!readerView) return;
 
+  currentOpenPostId = postId;
   publicViews.forEach((view) => view.classList.add("hidden"));
   dashboardView.classList.add("hidden");
   adminView.classList.add("hidden");
+  shrineScreenView?.classList.add("hidden");
   readerView.classList.remove("hidden");
   window.scrollTo(0, 0);
 
@@ -961,6 +1136,8 @@ async function openStory(postId) {
   document.querySelector("#reader-category").textContent = getSeriesLabel(post);
   document.querySelector("#reader-body").innerHTML = normalizeStoredContent(content);
   document.querySelector("#reading-time").textContent = `${calculateReadingTime(content)} min read`;
+  await refreshEchoComposer();
+  await loadEchoes(postId);
 }
 
 window.openStory = openStory;
@@ -976,4 +1153,384 @@ document.querySelector("#exit-reader")?.addEventListener("click", () => {
   publicViews.forEach((view) => view.classList.remove("hidden"));
   document.body.classList.remove("focus-mode");
   scrollToSection("#home");
+});
+
+const getYoutubeID = (url) => {
+  try {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname.includes("youtu.be")) return parsedUrl.pathname.slice(1) || null;
+    if (parsedUrl.hostname.includes("youtube.com")) return parsedUrl.searchParams.get("v");
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const getMediaType = (url) => {
+  try {
+    const hostname = new URL(url).hostname;
+    if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) return "youtube";
+    if (hostname.includes("tiktok.com")) return "tiktok";
+    if (hostname.includes("instagram.com")) return "instagram";
+  } catch {
+    return "";
+  }
+
+  return "cinematic_still";
+};
+
+// Screen videos play in-app for YouTube and link out for social platforms.
+const closeVideoModal = () => {
+  videoModal?.classList.add("hidden");
+  if (videoPlayerContainer) videoPlayerContainer.innerHTML = "";
+};
+
+const openVideoModal = (url, type) => {
+  if (!url || !isSafeMediaUrl(url)) return;
+
+  if (type !== "youtube") {
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  const id = getYoutubeID(url);
+  if (!id || !videoPlayerContainer || !videoModal) return;
+
+  videoPlayerContainer.innerHTML = `
+    <iframe
+      src="https://www.youtube.com/embed/${escapeHtml(id)}?autoplay=1"
+      title="Shrine Screen video"
+      allow="autoplay; encrypted-media; picture-in-picture"
+      allowfullscreen
+    ></iframe>
+  `;
+  videoModal.classList.remove("hidden");
+};
+
+// Build cards with DOM APIs so media titles and URLs never become raw HTML.
+const renderMediaCard = (item) => {
+  const card = document.createElement("article");
+  const thumbnail = document.createElement("div");
+  const info = document.createElement("div");
+  const title = document.createElement("h3");
+  const meta = document.createElement("span");
+  const videoId = item.media_type === "youtube" ? getYoutubeID(item.url) : "";
+  const thumbUrl = item.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : "");
+
+  card.className = "video-card";
+  card.tabIndex = 0;
+  card.role = "button";
+  thumbnail.className = "video-thumbnail";
+  info.className = "video-info";
+  title.className = "video-title";
+  meta.className = "meta-label";
+
+  if (thumbUrl && isSafeImageUrl(thumbUrl)) {
+    thumbnail.style.backgroundImage = `url("${thumbUrl}")`;
+  }
+
+  title.textContent = item.title || "Untitled vision";
+  meta.textContent = item.media_type || "vision";
+
+  const open = () => openVideoModal(item.url, item.media_type);
+  card.addEventListener("click", open);
+  card.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      open();
+    }
+  });
+
+  info.append(title, meta);
+  card.append(thumbnail, info);
+  return card;
+};
+
+const screenPreviewPlaceholders = [
+  {
+    title: "AI tales in motion",
+    media_type: "ai-story",
+  },
+  {
+    title: "Narrated poems and visions",
+    media_type: "audio-story",
+  },
+  {
+    title: "Motion comics from the circle",
+    media_type: "comic",
+  },
+];
+
+const renderScreenPreviewCard = (item, index) => {
+  const card = document.createElement("article");
+  const thumb = document.createElement("div");
+  const title = document.createElement("h3");
+  const meta = document.createElement("span");
+  const videoId = item.media_type === "youtube" ? getYoutubeID(item.url) : "";
+  const thumbUrl = item.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
+
+  card.className = `screen-preview-card preview-tone-${index + 1}`;
+  thumb.className = "screen-preview-thumb";
+  title.textContent = item.title || "Untitled vision";
+  meta.textContent = item.media_type || "vision";
+
+  if (thumbUrl && isSafeImageUrl(thumbUrl)) {
+    thumb.style.backgroundImage = `url("${thumbUrl}")`;
+  }
+
+  if (item.url) {
+    card.tabIndex = 0;
+    card.role = "button";
+    const open = () => openVideoModal(item.url, item.media_type);
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
+  }
+
+  card.append(thumb, title, meta);
+  return card;
+};
+
+async function renderScreenPreviews() {
+  if (!screenPreviewGrid) return;
+
+  screenPreviewGrid.innerHTML = "";
+
+  const { data: mediaItems = [], error } = await supabase
+    .from("media")
+    .select("title, url, media_type, thumbnail_url, created_at")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const previews = error || !mediaItems.length ? screenPreviewPlaceholders : mediaItems;
+  previews.forEach((item, index) => screenPreviewGrid.appendChild(renderScreenPreviewCard(item, index)));
+}
+
+// Load cinematic offerings from Supabase when the Shrine Screen opens.
+async function loadShrineScreen() {
+  if (!videoGrid) return;
+
+  videoGrid.innerHTML = "";
+
+  const { data: mediaItems = [], error } = await supabase
+    .from("media")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "The Screen could not be loaded.";
+    videoGrid.appendChild(emptyState);
+    console.error("Error loading Shrine Screen:", error);
+    return;
+  }
+
+  if (!mediaItems.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No visions have been offered yet.";
+    videoGrid.appendChild(emptyState);
+    return;
+  }
+
+  mediaItems.forEach((item) => videoGrid.appendChild(renderMediaCard(item)));
+}
+
+dashboardTabs.forEach((button) => {
+  button.addEventListener("click", () => {
+    dashboardTabs.forEach((tab) => tab.classList.remove("active"));
+    button.classList.add("active");
+
+    const showingVisuals = button.dataset.tab === "visual";
+    writerPostsGrid.classList.toggle("hidden", showingVisuals);
+    writerPostsLabel?.classList.toggle("hidden", showingVisuals);
+    visualSubmissionArea?.classList.toggle("hidden", !showingVisuals);
+  });
+});
+
+submitVisionBtn?.addEventListener("click", async () => {
+  const title = visualTitle?.value.trim() || "";
+  const url = visualUrl?.value.trim() || "";
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  if (!title || !url) {
+    alert("Every vision needs a title and a source.");
+    return;
+  }
+
+  if (!isSafeMediaUrl(url)) {
+    alert("Please paste a valid YouTube, TikTok, or Instagram link.");
+    return;
+  }
+
+  submitVisionBtn.textContent = "Offering...";
+  submitVisionBtn.disabled = true;
+
+  const payload = {
+    title,
+    url,
+    media_type: getMediaType(url),
+    author_id: user.id,
+  };
+
+  const request = currentEditingVisionId
+    ? supabase
+        .from("media")
+        .update(payload)
+        .eq("id", currentEditingVisionId)
+    : supabase.from("media").insert([payload]);
+
+  let { error } = await request;
+
+  if (error && isMissingColumnError(error, "author_id")) {
+    const { author_id: _authorId, ...legacyPayload } = payload;
+    const fallbackRequest = currentEditingVisionId
+      ? supabase.from("media").update(legacyPayload).eq("id", currentEditingVisionId)
+      : supabase.from("media").insert([legacyPayload]);
+
+    ({ error } = await fallbackRequest);
+  }
+
+  submitVisionBtn.textContent = currentEditingVisionId ? "Refine Vision" : "Offer to Screen";
+  submitVisionBtn.disabled = false;
+
+  if (error) {
+    alert("The Screen rejected the vision: " + error.message);
+    return;
+  }
+
+  alert(currentEditingVisionId ? "Your vision has been refined." : "Your vision has been accepted into the Screen.");
+  currentEditingVisionId = null;
+  visualTitle.value = "";
+  visualUrl.value = "";
+  submitVisionBtn.textContent = "Offer to Screen";
+  await loadWriterDashboard();
+  await loadShrineScreen();
+  await renderScreenPreviews();
+});
+
+closeVideoBtn?.addEventListener("click", closeVideoModal);
+videoModal?.addEventListener("click", (event) => {
+  if (event.target === videoModal) closeVideoModal();
+});
+
+// Initial page setup.
+document.body.style.overflowY = "hidden";
+renderFeaturedStories();
+renderScreenPreviews();
+renderAuthMode();
+initSession();
+
+
+const renderEchoEmptyState = (message) => {
+  const list = document.querySelector("#echoes-list");
+  if (!list) return;
+
+  const emptyState = document.createElement("p");
+  emptyState.className = "meta-label echo-empty-state";
+  emptyState.textContent = message;
+  list.replaceChildren(emptyState);
+};
+
+async function loadEchoes(postId) {
+  const list = document.querySelector("#echoes-list");
+  if (!list || !postId) return;
+
+  const { data: echoes = [], error } = await supabase
+    .from("comments")
+    .select("*, profiles(full_name, writer_level)")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Error loading echoes:", error);
+    renderEchoEmptyState("Echoes could not be loaded right now.");
+    return;
+  }
+
+  if (!echoes.length) {
+    renderEchoEmptyState("The circle is silent. Be the first to speak.");
+    return;
+  }
+
+  list.replaceChildren();
+
+  echoes.forEach((echo) => {
+    const item = document.createElement("div");
+    const meta = document.createElement("div");
+    const author = document.createElement("span");
+    const badge = document.createElement("span");
+    const content = document.createElement("p");
+    const date = document.createElement("div");
+
+    item.className = "echo-item";
+    meta.className = "echo-meta";
+    author.className = "echo-author";
+    badge.className = "echo-badge";
+    content.className = "echo-content";
+    date.className = "echo-date";
+
+    author.textContent = echo.profiles?.full_name || "A voice in the circle";
+    badge.textContent = echo.profiles?.writer_level || "Reader";
+    content.textContent = echo.content || "";
+    date.textContent = echo.created_at ? new Date(echo.created_at).toLocaleDateString() : "";
+
+    meta.append(author, badge);
+    item.append(meta, content, date);
+    list.appendChild(item);
+  });
+}
+
+const refreshEchoComposer = async () => {
+  const inputArea = document.querySelector("#echo-input-area");
+  const loginPrompt = document.querySelector("#echo-login-prompt");
+  if (!inputArea || !loginPrompt) return;
+
+  const user = await authActions.getCurrentUser();
+  inputArea.classList.toggle("hidden", !user);
+  loginPrompt.classList.toggle("hidden", Boolean(user));
+};
+
+document.querySelector("#submit-echo")?.addEventListener("click", async () => {
+  const textarea = document.querySelector("#new-echo-content");
+  const content = textarea?.value.trim() || "";
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  if (!currentOpenPostId || !content) return;
+
+  const { error } = await supabase.from("comments").insert([
+    {
+      post_id: currentOpenPostId,
+      user_id: user.id,
+      content,
+    },
+  ]);
+
+  if (error) {
+    alert("Your echo could not be added: " + error.message);
+    return;
+  }
+
+  textarea.value = "";
+  await loadEchoes(currentOpenPostId);
+});
+
+document.querySelector("#open-auth-from-comments")?.addEventListener("click", openAuthModal);
+document.querySelector("#toggle-comments")?.addEventListener("click", () => {
+  document.querySelector("#echoes-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });

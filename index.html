@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
+    <div id="app-loading" class="app-loading hidden" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-mark">àlọ́</div>
+        <p id="app-loading-text">Opening the shrine...</p>
+    </div>
+
     <div id="app">
         <!-- First-screen shrine entrance -->
         <section id="hero" class="hero">
@@ -62,11 +67,12 @@
 
             <!-- Public media promotion band -->
             <section id="screen" class="media-band public-view">
-                <div>
+                <div class="media-copy">
                     <p class="eyebrow">Shrine Screen</p>
                     <h2>Cinematic stories, motion comics, and narrated poetry.</h2>
+                    <button id="open-screen" class="text-button" type="button">Watch latest</button>
                 </div>
-                <button class="text-button" type="button">Watch latest</button>
+                <div id="screen-preview-grid" class="screen-preview-grid" aria-live="polite"></div>
             </section>
 
             <!-- Writer dashboard shown after authentication -->
@@ -84,10 +90,35 @@
 
                 <div class="dashboard-stats">
                     <div class="stat-card"><span>Works</span><strong id="stat-works">0</strong></div>
+                    <div class="stat-card visual-stat"><span>Visual Visions</span><strong id="stat-visions">0</strong></div>
                     <div class="stat-card"><span>Recognition</span><strong id="stat-likes">0</strong></div>
                 </div>
 
-                <h3 class="sub-label">Your Current Ink</h3>
+                <div class="dashboard-tabs" aria-label="Dashboard views">
+                    <button class="tab-btn active" type="button" data-tab="written">Written Ink</button>
+                    <button class="tab-btn" type="button" data-tab="visual">Visual Visions</button>
+                </div>
+
+                <div id="visual-submission-area" class="hidden">
+                    <div class="offering-card visual-form">
+                        <h3 class="font-display">Prepare a Visual Offering</h3>
+                        <p class="auth-subtitle">Link a cinematic vision from YouTube or TikTok</p>
+
+                        <div class="input-group">
+                            <input type="text" id="visual-title" placeholder="Title of the Vision" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="url" id="visual-url" placeholder="Paste YouTube/TikTok URL here" required>
+                        </div>
+
+                        <button id="submit-vision" class="cta-gold" type="button">Offer to Screen</button>
+                    </div>
+
+                    <h3 id="writer-visions-label" class="sub-label">Your Visual Visions</h3>
+                    <div id="writer-visions-grid" class="story-grid" aria-live="polite"></div>
+                </div>
+
+                <h3 id="writer-posts-label" class="sub-label">Your Current Ink</h3>
                 <div id="writer-posts-grid" class="story-grid" aria-live="polite"></div>
             </section>
 
@@ -188,6 +219,7 @@
                 <button id="toggle-focus" class="icon-btn" type="button" title="Focus Mode">✨</button>
                 <button id="add-bookmark" class="icon-btn" type="button" title="Bookmark">🔖</button>
             </div>
+
         </header>
 
         <!-- The Content -->
@@ -211,8 +243,57 @@
                 <button id="toggle-comments" class="text-btn" type="button">Listen to the Circle (Comments)</button>
             </footer>
         </article>
+
+        <!-- THE ECHOES (Comments Section) -->
+        <section id="echoes-section" class="echoes-container">
+            <div class="divider">✦ ✦ ✦</div>
+            <h3 class="font-display">Echoes of the Circle</h3>
+
+            <!-- Speaking Area (Only for logged-in users) -->
+            <div id="echo-input-area" class="echo-input-box hidden auth-only">
+                <textarea id="new-echo-content" placeholder="Add your voice to the circle..."></textarea>
+                <button id="submit-echo" class="text-btn" type="button">Speak →</button>
+            </div>
+
+            <p id="echo-login-prompt" class="meta-label echo-login-prompt">
+                You must <button id="open-auth-from-comments" class="inline-text-btn" type="button">Join the Circle</button> to speak.
+            </p>
+
+            <!-- The List of Echoes -->
+            <div id="echoes-list" class="echoes-list" aria-live="polite">
+                <!-- Echoes will be injected here -->
+            </div>
+        </section>
     </div>
 </section>
+
+<!-- THE SHRINE SCREEN -->
+<section id="shrine-screen-view" class="hidden">
+    <div class="screen-container">
+        <header class="screen-header">
+            <div>
+                <p class="eyebrow">Shrine Screen</p>
+                <h1 class="font-display">The Shrine Screen</h1>
+                <p>Cinematic visions from the circle</p>
+            </div>
+            <button id="exit-screen" class="text-btn" type="button">&larr; Back to Shrine</button>
+        </header>
+
+        <div id="video-grid" class="video-grid" aria-live="polite">
+            <!-- Video Cards will be injected here -->
+        </div>
+    </div>
+</section>
+
+<!-- VIDEO MODAL (The Lightbox) -->
+<div id="video-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <button id="close-video" class="close-btn" type="button" aria-label="Close video">&times;</button>
+        <div id="video-player-container">
+            <!-- Embed will be injected here -->
+        </div>
+    </div>
+</div>
 
             <!-- Inkwell editor for drafts and published offerings -->
             <section id="editor-view" class="editor-view hidden">
@@ -226,12 +307,21 @@
                     </header>
 
                     <div class="editor-sheet">
-                        <select id="post-type" class="editor-select">
-                            <option value="story">Story</option>
-                            <option value="poem">Poetry</option>
-                            <option value="essay">Essay</option>
-                            <option value="ai-story">AI Tale</option>
-                        </select>
+                        <label class="editor-field-label" for="post-type">
+                            Category
+                            <select id="post-type" class="editor-select" required>
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="story">Story</option>
+                                <option value="poem">Poetry</option>
+                                <option value="essay">Essay</option>
+                                <option value="comic">Comic</option>
+                                <option value="folklore">Folklore</option>
+                                <option value="ai-story">AI Tale</option>
+                                <option value="series">Series Segment</option>
+                                <option value="audio-story">Audio Story</option>
+                                <option value="narrative">Narrative</option>
+                            </select>
+                        </label>
 
                         <div class="story-format-panel" aria-label="Story format">
                             <div class="segmented-control">
@@ -249,7 +339,7 @@
                                 <input type="text" id="series-title" class="editor-meta-input" placeholder="Series title, e.g. MY YELLOW BUS GIST">
                                 <div class="series-row">
                                     <input type="number" id="episode-number" class="editor-meta-input" min="1" step="1" placeholder="Episode no.">
-                                    <input type="text" id="episode-title" class="editor-meta-input" placeholder="Episode title">
+                                    <input type="text" id="episode-title" class="editor-meta-input" placeholder="Episode title (optional)">
                                 </div>
                                 <select id="release-cadence" class="editor-meta-input">
                                     <option value="weekly">Weekly release</option>
@@ -260,7 +350,7 @@
                             </div>
                         </div>
 
-                        <input type="text" id="post-title" class="editor-title" placeholder="Title your offering..." spellcheck="false">
+                        <input type="text" id="post-title" class="editor-title" placeholder="Title this one story..." spellcheck="false">
 
                         <div class="editor-toolbar" aria-label="Offering formatting tools">
                             <div class="toolbar-group">
