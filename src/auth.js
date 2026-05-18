@@ -3,11 +3,14 @@ import { supabase } from '../Lib/supabaseClient.js'
 let currentUserPromise = null;
 let currentUserCache = null;
 
+const getAccountType = (user) => (user.user_metadata?.account_type === 'writer' ? 'writer' : 'reader');
+
 const getStarterProfile = (user) => ({
     id: user.id,
-    full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'New writer',
+    full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'New member',
     username: user.user_metadata?.username || user.email?.split('@')[0] || user.id,
-    writer_level: 'Novice Scribe',
+    role: getAccountType(user),
+    writer_level: getAccountType(user) === 'writer' ? 'Novice Scribe' : 'The Listener',
 });
 
 const fetchProfile = async (user) => {
@@ -56,14 +59,19 @@ const ensureProfile = async (user) => {
 // Supabase auth helpers used by the app UI.
 export const authActions = {
     // Create a new account and store starter profile metadata.
-    signUp: async (email, password, fullName) => {
+    signUp: async (email, password, fullName, accountType = 'reader') => {
+        const role = accountType === 'writer' ? 'writer' : 'reader';
+
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
                     full_name: fullName,
-                    username: email.split('@')[0] // Temporary username
+                    username: email.split('@')[0],
+                    account_type: role,
+                    role,
+                    writer_level: role === 'writer' ? 'Novice Scribe' : 'The Listener',
                 }
             }
         });
@@ -125,5 +133,11 @@ export const authActions = {
         const userObject = await currentUserPromise;
         currentUserPromise = null;
         return userObject;
+    },
+
+    refreshCurrentUser: async () => {
+        currentUserCache = null;
+        currentUserPromise = null;
+        return authActions.getCurrentUser();
     }
 };

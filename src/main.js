@@ -18,6 +18,7 @@ const authEmail = document.querySelector("#auth-email");
 const authPassword = document.querySelector("#auth-password");
 const authFullName = document.querySelector("#auth-fullname");
 const nameField = document.querySelector("#name-field");
+const accountTypeField = document.querySelector("#account-type-field");
 const closeAuthBtn = document.querySelector("#close-auth");
 const authSubmit = document.querySelector("#auth-submit");
 const authTitle = document.querySelector(".auth-title");
@@ -30,12 +31,16 @@ const navAuthTrigger = document.querySelector("#nav-auth-trigger");
 const navDashboard = document.querySelector("#nav-dashboard");
 const navAdmin = document.querySelector("#nav-admin-link");
 const goHome = document.querySelector("#go-home");
-const publicNavLinks = document.querySelectorAll('.nav-links a[href^="#"]:not(#nav-dashboard):not(#nav-admin-link)');
+const publicNavLinks = document.querySelectorAll('.nav-links a[href^="#"]:not(#nav-dashboard):not(#nav-reader-profile):not(#nav-admin-link)');
+const visitorNavLinks = document.querySelectorAll(".visitor-nav");
 const dashboardView = document.querySelector("#dashboard-view");
 const adminView = document.querySelector("#admin-view");
 const readerView = document.querySelector("#reader-view");
+const scrollView = document.querySelector("#scroll-view");
 const logoutWriterBtn = document.querySelector("#logout-writer");
 const exitOracleBtn = document.querySelector("#exit-oracle");
+const navReaderProfile = document.querySelector("#nav-reader-profile");
+const exitScrollBtn = document.querySelector("#exit-scroll");
 const oracleContentList = document.querySelector("#oracle-content-list");
 const stageCount = document.querySelector("#stage-count");
 const publicViews = document.querySelectorAll(".public-view");
@@ -83,6 +88,7 @@ let currentEditingPostId = null;
 let currentEditingPostWasSeries = false;
 let currentEditingVisionId = null;
 let currentOpenPostId = null;
+let currentOpenPostTitle = "";
 
 const setAppLoading = (isLoading, message = "Opening the shrine...") => {
   if (!appLoading) return;
@@ -120,6 +126,13 @@ const getSeriesLabel = (post) => {
 
 const getDisplayTitle = (post) => post.title || "Untitled offering";
 
+const getStoryShareUrl = (postId = currentOpenPostId) => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("story", postId);
+  url.hash = "reader";
+  return url.toString();
+};
+
 const isMissingColumnError = (error, columnName) =>
   Boolean(error?.message?.toLowerCase().includes(columnName.toLowerCase()));
 
@@ -127,6 +140,20 @@ const isAdminUser = (user) => {
   const role = user?.profile?.role || user?.user_metadata?.role || user?.app_metadata?.role;
 
   return Boolean(user?.profile?.is_admin || user?.user_metadata?.is_admin || user?.app_metadata?.is_admin || ["admin", "oracle"].includes(role));
+};
+
+const getUserRole = (user) => {
+  const role = user?.profile?.role || user?.user_metadata?.role || user?.user_metadata?.account_type || "";
+  if (["admin", "oracle", "writer"].includes(role)) return "writer";
+  if (role === "reader") return "reader";
+  return user?.profile?.writer_level && user.profile.writer_level !== "The Listener" ? "writer" : "reader";
+};
+
+const isWriterUser = (user) => getUserRole(user) === "writer";
+
+const getVoiceLabel = (profile = {}) => {
+  if ((profile.role || "").toLowerCase() === "reader") return "The Listener";
+  return profile.writer_level || "The Listener";
 };
 
 const allowedRichTags = new Set([
@@ -418,16 +445,25 @@ const showView = async (viewName, targetSelector = "#home") => {
   const showingDashboard = viewName === "dashboard";
   const showingAdmin = viewName === "admin";
   const showingScreen = viewName === "screen";
+  const showingScroll = viewName === "scroll";
 
-  publicViews.forEach((view) => view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen));
+  publicViews.forEach((view) => view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen || showingScroll));
   dashboardView.classList.toggle("hidden", !showingDashboard);
   adminView.classList.toggle("hidden", !showingAdmin);
   shrineScreenView?.classList.toggle("hidden", !showingScreen);
+  scrollView?.classList.toggle("hidden", !showingScroll);
   readerView?.classList.add("hidden");
   document.body.classList.remove("focus-mode");
   document.body.style.overflow = "auto";
 
   if (showingDashboard) {
+    const user = await authActions.getCurrentUser();
+
+    if (!isWriterUser(user)) {
+      await showView("scroll");
+      return;
+    }
+
     await loadWriterDashboard();
     scrollToSection("#dashboard-view");
     return;
@@ -453,6 +489,20 @@ const showView = async (viewName, targetSelector = "#home") => {
     return;
   }
 
+  if (showingScroll) {
+    const user = await authActions.getCurrentUser();
+
+    if (!user) {
+      await showView("home", "#home");
+      openAuthModal();
+      return;
+    }
+
+    await loadTheScroll();
+    scrollToSection("#scroll-view");
+    return;
+  }
+
   scrollToSection(targetSelector);
 };
 
@@ -468,9 +518,10 @@ const closeAuthModal = () => {
 // Keep auth copy and required fields in sync with the current mode.
 const renderAuthMode = () => {
   nameField.classList.toggle("hidden", !isSignUpMode);
+  accountTypeField?.classList.toggle("hidden", !isSignUpMode);
   authFullName.required = isSignUpMode;
   authTitle.textContent = isSignUpMode ? "Enter the Circle" : "Welcome Back";
-  authSubtitle.textContent = isSignUpMode ? "Become a Keeper of Ink" : "Return to the Shrine";
+  authSubtitle.textContent = isSignUpMode ? "Choose your place in the circle" : "Return to the Shrine";
   setAuthSubmitting(false);
   authToggle.innerHTML = isSignUpMode
     ? 'Already a member? <span id="toggle-mode">Step Inside</span>'
@@ -596,6 +647,11 @@ async function loadWriterDashboard() {
     return;
   }
 
+  if (!isWriterUser(user)) {
+    await showView("scroll");
+    return;
+  }
+
   document.querySelector("#writer-name").textContent =
     user.profile?.full_name || user.user_metadata?.full_name || user.email;
   document.querySelector("#writer-level").textContent = user.profile?.writer_level || "Novice Scribe";
@@ -629,12 +685,18 @@ async function initSession() {
 
   if (!user) {
     document.querySelectorAll(".auth-only").forEach((el) => el.classList.add("hidden"));
+    visitorNavLinks.forEach((link) => link.classList.remove("hidden"));
+    navDashboard.classList.add("hidden");
+    navReaderProfile?.classList.add("hidden");
     navAdmin.classList.add("hidden");
     navAuthTrigger.classList.remove("hidden");
     return null;
   }
 
   document.querySelectorAll(".auth-only").forEach((el) => el.classList.remove("hidden"));
+  visitorNavLinks.forEach((link) => link.classList.add("hidden"));
+  navDashboard.classList.toggle("hidden", !isWriterUser(user));
+  navReaderProfile?.classList.toggle("hidden", isWriterUser(user));
   navAdmin.classList.toggle("hidden", !isAdminUser(user));
   navAuthTrigger.classList.add("hidden");
   return user;
@@ -730,6 +792,11 @@ const openEditor = async (post = null) => {
     return;
   }
 
+  if (!isWriterUser(user)) {
+    await showView("scroll");
+    return;
+  }
+
   resetEditor(post);
   editorView.classList.remove("hidden");
   document.body.style.overflow = "hidden";
@@ -767,6 +834,12 @@ const saveOffering = async (status) => {
   if (!user) {
     alert("You must be part of the circle to offer a story.");
     openAuthModal();
+    return;
+  }
+
+  if (!isWriterUser(user)) {
+    alert("Listeners can read, bookmark, and leave echoes. Become a Scribe from your Scroll to offer stories.");
+    await showView("scroll");
     return;
   }
 
@@ -898,13 +971,14 @@ authForm.addEventListener("submit", async (event) => {
   const email = authEmail.value.trim();
   const password = authPassword.value;
   const fullName = authFullName.value.trim();
+  const accountType = document.querySelector('input[name="account-type"]:checked')?.value || "reader";
 
   setAuthSubmitting(true);
-  setAppLoading(true, isSignUpMode ? "Preparing your inkwell..." : "Opening your inkwell...");
+  setAppLoading(true, isSignUpMode && accountType === "reader" ? "Preparing your scroll..." : isSignUpMode ? "Preparing your inkwell..." : "Opening your circle...");
 
   try {
     if (isSignUpMode) {
-      const { session } = await authActions.signUp(email, password, fullName);
+      const { session } = await authActions.signUp(email, password, fullName, accountType);
 
       if (!session) {
         setAuthSubmitting(false);
@@ -914,8 +988,8 @@ authForm.addEventListener("submit", async (event) => {
       }
 
       closeAuthModal();
-      await initSession();
-      await showView("dashboard");
+      const user = await initSession();
+      await showView(isWriterUser(user) ? "dashboard" : "scroll");
       return;
     }
 
@@ -925,8 +999,10 @@ authForm.addEventListener("submit", async (event) => {
 
     if (isAdminUser(user)) {
       await showView("admin");
-    } else {
+    } else if (isWriterUser(user)) {
       await showView("dashboard");
+    } else {
+      await showView("scroll");
     }
   } catch (error) {
     alert(error.message);
@@ -947,6 +1023,11 @@ navAdmin.addEventListener("click", (event) => {
   showView("admin");
 });
 
+navReaderProfile?.addEventListener("click", (event) => {
+  event.preventDefault();
+  showView("scroll");
+});
+
 publicNavLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
@@ -957,6 +1038,11 @@ publicNavLinks.forEach((link) => {
 exitOracleBtn.addEventListener("click", (event) => {
   event.preventDefault();
   showView("dashboard");
+});
+
+exitScrollBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  showView("home", "#home");
 });
 
 logoutWriterBtn.addEventListener("click", async () => {
@@ -1102,6 +1188,125 @@ const getPostWithAuthorProfile = async (postId) => {
   return { post: { ...post, profiles: profile || null }, error: null };
 };
 
+const updateBookmarkButton = async (postId = currentOpenPostId) => {
+  const button = document.querySelector("#add-bookmark");
+  if (!button || !postId) return;
+
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    button.classList.remove("is-saved");
+    button.setAttribute("aria-pressed", "false");
+    button.title = "Bookmark";
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("likes")
+    .select("post_id")
+    .eq("user_id", user.id)
+    .eq("post_id", postId)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error checking bookmark:", error);
+    return;
+  }
+
+  const isSaved = Boolean(data);
+  button.classList.toggle("is-saved", isSaved);
+  button.setAttribute("aria-pressed", String(isSaved));
+  button.title = isSaved ? "Remove bookmark" : "Bookmark";
+};
+
+const toggleBookmark = async () => {
+  const postId = currentOpenPostId;
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  if (!postId) return;
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("likes")
+    .select("post_id")
+    .eq("user_id", user.id)
+    .eq("post_id", postId)
+    .limit(1)
+    .maybeSingle();
+
+  if (lookupError) {
+    alert("The bookmark could not be checked: " + lookupError.message);
+    return;
+  }
+
+  const request = existing
+    ? supabase.from("likes").delete().eq("user_id", user.id).eq("post_id", postId)
+    : supabase.from("likes").insert([{ user_id: user.id, post_id: postId }]);
+
+  const { error } = await request;
+
+  if (error) {
+    alert("The bookmark could not be saved: " + error.message);
+    return;
+  }
+
+  await updateBookmarkButton(postId);
+};
+
+const updateShareLinks = () => {
+  if (!currentOpenPostId) return;
+
+  const shareUrl = getStoryShareUrl(currentOpenPostId);
+  const title = currentOpenPostTitle || "A story from àlọ́";
+  const encodedUrl = encodeURIComponent(shareUrl);
+  const encodedText = encodeURIComponent(`${title} - Shrine of Tales`);
+
+  document.querySelector("#share-whatsapp")?.setAttribute("href", `https://wa.me/?text=${encodedText}%20${encodedUrl}`);
+  document.querySelector("#share-threads")?.setAttribute("href", `https://www.threads.net/intent/post?text=${encodedText}%20${encodedUrl}`);
+  document.querySelector("#share-facebook")?.setAttribute("href", `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`);
+  document.querySelector("#share-x")?.setAttribute("href", `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`);
+};
+
+const copyStoryLink = async () => {
+  if (!currentOpenPostId) return;
+
+  const shareUrl = getStoryShareUrl(currentOpenPostId);
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    alert("Story link copied.");
+  } catch {
+    prompt("Copy this story link", shareUrl);
+  }
+};
+
+const shareCurrentStory = async () => {
+  if (!currentOpenPostId) return;
+
+  const shareUrl = getStoryShareUrl(currentOpenPostId);
+  const title = currentOpenPostTitle || "Shrine of Tales";
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title,
+        text: `Read "${title}" on àlọ́.`,
+        url: shareUrl,
+      });
+      return;
+    } catch (error) {
+      if (error.name === "AbortError") return;
+    }
+  }
+
+  await copyStoryLink();
+};
+
 function calculateReadingTime(content = "") {
   const words = content.replace(/<[^>]*>/g, " ").trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 200));
@@ -1117,6 +1322,7 @@ async function openStory(postId) {
   dashboardView.classList.add("hidden");
   adminView.classList.add("hidden");
   shrineScreenView?.classList.add("hidden");
+  scrollView?.classList.add("hidden");
   readerView.classList.remove("hidden");
   window.scrollTo(0, 0);
 
@@ -1130,12 +1336,15 @@ async function openStory(postId) {
   }
 
   const content = post.content || "";
+  currentOpenPostTitle = getDisplayTitle(post);
 
-  document.querySelector("#reader-title").textContent = post.title || "Untitled offering";
+  document.querySelector("#reader-title").textContent = currentOpenPostTitle;
   document.querySelector("#reader-author").textContent = `By ${post.profiles?.full_name || "Unknown scribe"}`;
   document.querySelector("#reader-category").textContent = getSeriesLabel(post);
   document.querySelector("#reader-body").innerHTML = normalizeStoredContent(content);
   document.querySelector("#reading-time").textContent = `${calculateReadingTime(content)} min read`;
+  updateShareLinks();
+  await updateBookmarkButton(postId);
   await refreshEchoComposer();
   await loadEchoes(postId);
 }
@@ -1146,6 +1355,10 @@ window.openStory = openStory;
 document.querySelector("#toggle-focus")?.addEventListener("click", () => {
   document.body.classList.toggle("focus-mode");
 });
+
+document.querySelector("#add-bookmark")?.addEventListener("click", toggleBookmark);
+document.querySelector("#share-native")?.addEventListener("click", shareCurrentStory);
+document.querySelector("#copy-story-link")?.addEventListener("click", copyStoryLink);
 
 // Exit Reader
 document.querySelector("#exit-reader")?.addEventListener("click", () => {
@@ -1363,6 +1576,12 @@ submitVisionBtn?.addEventListener("click", async () => {
     return;
   }
 
+  if (!isWriterUser(user)) {
+    alert("Visual offerings belong in the Scribe's inkwell. You can become a Scribe from your Scroll.");
+    await showView("scroll");
+    return;
+  }
+
   if (!title || !url) {
     alert("Every vision needs a title and a source.");
     return;
@@ -1431,6 +1650,15 @@ renderScreenPreviews();
 renderAuthMode();
 initSession();
 
+const initialStoryId = new URLSearchParams(window.location.search).get("story");
+if (initialStoryId) {
+  hero?.classList.add("lifted");
+  content?.classList.remove("hidden");
+  content?.classList.add("visible");
+  document.body.style.overflowY = "auto";
+  openStory(initialStoryId);
+}
+
 
 const renderEchoEmptyState = (message) => {
   const list = document.querySelector("#echoes-list");
@@ -1448,7 +1676,7 @@ async function loadEchoes(postId) {
 
   const { data: echoes = [], error } = await supabase
     .from("comments")
-    .select("*, profiles(full_name, writer_level)")
+    .select("*, profiles(full_name, role, writer_level)")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
@@ -1481,7 +1709,7 @@ async function loadEchoes(postId) {
     date.className = "echo-date";
 
     author.textContent = echo.profiles?.full_name || "A voice in the circle";
-    badge.textContent = echo.profiles?.writer_level || "Reader";
+    badge.textContent = getVoiceLabel(echo.profiles);
     content.textContent = echo.content || "";
     date.textContent = echo.created_at ? new Date(echo.created_at).toLocaleDateString() : "";
 
@@ -1533,4 +1761,106 @@ document.querySelector("#submit-echo")?.addEventListener("click", async () => {
 document.querySelector("#open-auth-from-comments")?.addEventListener("click", openAuthModal);
 document.querySelector("#toggle-comments")?.addEventListener("click", () => {
   document.querySelector("#echoes-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+// 2. Load the Scroll Content
+async function loadTheScroll() {
+  const userObject = await authActions.getCurrentUser();
+  if (!userObject) return;
+
+  const username = document.querySelector("#scroll-username");
+  const bookmarkCount = document.querySelector("#count-bookmarks");
+  const echoCount = document.querySelector("#count-echoes");
+  const grid = document.querySelector("#bookmarks-grid");
+
+  if (username) {
+    username.textContent = userObject.profile?.full_name || userObject.user_metadata?.full_name || userObject.email || "The Listener";
+  }
+
+  const { data: bookmarks = [], error: bookmarkError } = await supabase
+    .from("likes")
+    .select(`
+      post_id,
+      posts (*)
+    `)
+    .eq("user_id", userObject.id);
+
+  if (!bookmarkError && grid) {
+    if (bookmarkCount) bookmarkCount.textContent = bookmarks.length;
+    grid.replaceChildren();
+
+    if (!bookmarks.length) {
+      const emptyState = document.createElement("p");
+      emptyState.className = "empty-state";
+      emptyState.textContent = "No stories have been saved yet.";
+      grid.appendChild(emptyState);
+    }
+
+    bookmarks.forEach((bookmark) => {
+      const post = bookmark.posts;
+      if (!post) return;
+
+      const card = document.createElement("article");
+      const title = document.createElement("h3");
+      const meta = document.createElement("p");
+
+      card.className = "offering-card";
+      card.tabIndex = 0;
+      card.role = "button";
+      title.className = "offering-title";
+      meta.className = "offering-meta";
+      title.textContent = getDisplayTitle(post);
+      meta.textContent = post.type || "story";
+
+      card.addEventListener("click", () => openStory(post.id));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openStory(post.id);
+        }
+      });
+
+      card.append(title, meta);
+      grid.appendChild(card);
+    });
+  }
+
+  const { count, error: commentError } = await supabase
+    .from("comments")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userObject.id);
+
+  if (!commentError && echoCount) {
+    echoCount.textContent = count || 0;
+  }
+}
+
+// 3. The Ascension Ritual Logic
+document.querySelector("#begin-ascension")?.addEventListener("click", async () => {
+    const userObject = await authActions.getCurrentUser();
+    if (!userObject) {
+        openAuthModal();
+        return;
+    }
+    
+    const ready = confirm("By taking this ink, you move from the circle of listeners to the circle of storytellers. Are you ready?");
+    
+    if (ready) {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ 
+                role: "writer",
+                writer_level: 'Novice Scribe'
+            })
+            .eq('id', userObject.id);
+
+        if (!error) {
+            alert("The shrine accepts your voice. You are now a Novice Scribe.");
+            await authActions.refreshCurrentUser();
+            await initSession();
+            await showView("dashboard");
+        } else {
+            alert("The transformation failed: " + error.message);
+        }
+    }
 });

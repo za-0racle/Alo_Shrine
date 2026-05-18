@@ -36,12 +36,13 @@
                 <a id="go-home" class="brand-link" href="#home" aria-label="àlọ́ home">àlọ́</a>
                 <div class="nav-links">
                     <a href="#explore" id="nav-explore">Explore</a>
-                    <a href="#stories">Stories</a>
-                    <a href="#poems">Poems</a>
+                    <a href="#stories" class="visitor-nav">Stories</a>
+                    <a href="#poems" class="visitor-nav">Poems</a>
                     <a href="#screen">Shrine Screen</a>
-                    <a href="#write">Write</a>
-                    <a href="#community">Community</a>
+                    <a href="#write" class="visitor-nav">Write</a>
+                    <a href="#community" class="visitor-nav">Community</a>
                     <a href="#dashboard-view" id="nav-dashboard" class="hidden auth-only">My Inkwell</a>
+                    <a href="#scroll-view" id="nav-reader-profile" class="hidden auth-only">My Scroll</a>
                     <a href="#admin-view" id="nav-admin-link" class="hidden">Oracle's Chamber</a>
                     <button id="nav-auth-trigger" class="nav-btn" type="button">Join Circle</button>
                 </div>
@@ -161,17 +162,24 @@
             <footer class="site-footer public-view">
                 <a class="footer-brand" href="#home" aria-label="àlọ́ home">àlọ́</a>
                 <nav class="social-links" aria-label="Social links">
-                    <a href="https://www.instagram.com/aloshrine" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <a href="https://www.instagram.com/shrineoftales" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <rect x="3" y="3" width="18" height="18" rx="5"></rect>
                             <circle cx="12" cy="12" r="4"></circle>
                             <circle cx="17" cy="7" r="1"></circle>
                         </svg>
                     </a>
-                    <a href="https://www.tiktok.com/@aloshrine" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                    <a href="https://www.tiktok.com/@theelderstoryteller" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M14 3v11.2a4.2 4.2 0 1 1-4.2-4.2"></path>
                             <path d="M14 6.5c1.2 2.1 3 3.3 5.2 3.5"></path>
+                        </svg>
+                    </a>
+                    <a href="https://www.threads.com/@shrineoftales" target="_blank" rel="noopener noreferrer" aria-label="Threads">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M17.5 8.2c-.7-3-2.7-4.7-5.7-4.7-3.7 0-6.3 2.8-6.3 8.4 0 5.5 2.6 8.6 6.8 8.6 3.2 0 5.6-1.8 5.6-4.5 0-2.6-2.2-4-5.3-3.9"></path>
+                            <path d="M9.4 15.7c0 1.1.9 1.8 2.4 1.8 1.7 0 2.9-1 2.9-2.4s-1.1-2.3-2.9-2.3c-1.5 0-2.4.7-2.4 1.8z"></path>
+                            <path d="M15.1 11c1.6.4 2.9 1.1 3.9 2.1"></path>
                         </svg>
                     </a>
                     <a href="https://whatsapp.com/channel/0029Va9KJCpCsU9XUxY6Kb30" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Channel">
@@ -195,6 +203,23 @@
                         <div class="input-group" id="name-field">
                             <input type="text" id="auth-fullname" placeholder="Your Full Name" required>
                         </div>
+                        <fieldset id="account-type-field" class="account-type-field">
+                            <legend>How will you enter?</legend>
+                            <label>
+                                <input type="radio" name="account-type" value="reader" checked>
+                                <span>
+                                    <strong>Listener</strong>
+                                    <small>Read, bookmark, and leave echoes.</small>
+                                </span>
+                            </label>
+                            <label>
+                                <input type="radio" name="account-type" value="writer">
+                                <span>
+                                    <strong>Scribe</strong>
+                                    <small>Write, publish, and keep an inkwell.</small>
+                                </span>
+                            </label>
+                        </fieldset>
                         <div class="input-group">
                             <input type="email" id="auth-email" placeholder="Email Address" required>
                         </div>
@@ -267,6 +292,14 @@
             <footer class="article-footer">
                 <div class="divider">✦</div>
                 <p>You have finished this offering.</p>
+                <div class="reader-share-actions" aria-label="Share this story">
+                    <button id="share-native" class="share-btn" type="button">Share</button>
+                    <a id="share-whatsapp" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                    <a id="share-threads" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">Threads</a>
+                    <a id="share-facebook" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
+                    <a id="share-x" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">X</a>
+                    <button id="copy-story-link" class="share-btn" type="button">Copy Link</button>
+                </div>
                 <button id="toggle-comments" class="text-btn" type="button">Listen to the Circle (Comments)</button>
             </footer>
         </article>
@@ -311,6 +344,47 @@
         </div>
     </div>
 </section>
+
+            <!-- Listener profile view -->
+            <section id="scroll-view" class="hidden">
+                <div class="scroll-container">
+                    <header class="scroll-header">
+                        <button id="exit-scroll" class="text-btn" type="button">&larr; Back to Shrine</button>
+                        <h1 id="scroll-username" class="font-display">The Listener</h1>
+                        <span class="badge reader-badge">The Listener</span>
+                        <p class="scroll-bio">A seeker of stories within the circle.</p>
+                    </header>
+
+                    <div class="scroll-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Sacred Collection</span>
+                            <strong id="count-bookmarks">0</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Echoes Spoken</span>
+                            <strong id="count-echoes">0</strong>
+                        </div>
+                    </div>
+
+                    <section class="scroll-section">
+                        <h2 class="sub-label">Your Sacred Collection</h2>
+                        <div id="bookmarks-grid" class="story-grid">
+                            <!-- Bookmarked stories will appear here -->
+                        </div>
+                    </section>
+
+                    <section id="ascension-shrine" class="ascension-box">
+                        <div class="divider">✦</div>
+                        <h3 class="font-display">The Call of the Ink</h3>
+                        <p class="meta-label">Have the stories moved you to speak?</p>
+                        <p class="ascension-text">
+                            If you feel the weight of a story within you, you may ascend from a Listener to a Scribe. 
+                            Your journey as a writer will begin as a <b>Novice Scribe</b>.
+                        </p>
+                        <button id="begin-ascension" class="cta-gold" type="button">I am ready to offer my ink</button>
+                    </section>
+                </div>
+            </section>
 
 <!-- VIDEO MODAL (The Lightbox) -->
 <div id="video-modal" class="modal-overlay hidden">
