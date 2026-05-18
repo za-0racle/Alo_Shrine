@@ -1,0 +1,1166 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap");
+
+/* 01. Design tokens */
+:root {
+  --alo-black: #0b0b0b;
+  --alo-ink: #1e1b2e;
+  --alo-paper: #f5f1e8;
+  --alo-gold: #c8a45d;
+  --alo-gold-muted: rgba(200, 164, 93, 0.52);
+  --alo-gold-dark: #8f6b2d;
+  --alo-earth: #6b4e2e;
+  --alo-calm: #4ec9b0;
+  --alo-emotion: #ff6b6b;
+  --alo-ai: #b86bff;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Inter", Arial, sans-serif;
+  --ease: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 02. Base page setup */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--alo-paper);
+  color: var(--alo-ink);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(200, 164, 93, 0.18), transparent 28%),
+    linear-gradient(rgba(11, 11, 11, 0.035) 1px, transparent 1px);
+  background-size: auto, 100% 4px;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 03. Entrance hero */
+.hero {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 11, 0.58), rgba(11, 11, 11, 0.22) 45%, rgba(11, 11, 11, 0.7)),
+    url("/alo-bg1.png") center / cover no-repeat,
+    var(--alo-black);
+  transition: transform 1.35s var(--ease), opacity 1s ease;
+}
+
+.hero.lifted {
+  transform: translateY(-100%);
+  opacity: 0.98;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(200, 164, 93, 0.18), transparent 28%),
+    radial-gradient(circle at 50% 42%, transparent 0 28%, rgba(0, 0, 0, 0.18) 62%, rgba(0, 0, 0, 0.52));
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  width: min(92vw, 760px);
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.alo-wordmark {
+  margin: 0;
+  color: var(--alo-gold);
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 16vw, 11rem);
+  font-weight: 500;
+  line-height: 0.9;
+  text-shadow: 0 18px 36px rgba(0, 0, 0, 0.52);
+}
+
+.alo-tagline,
+.eyebrow {
+  margin: 0;
+  color: var(--alo-gold);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.alo-tagline {
+  margin-top: clamp(18px, 3vw, 34px);
+  font-size: clamp(0.88rem, 1.6vw, 1.08rem);
+}
+
+.hero-manifesto {
+  margin: 26px 0 32px;
+  color: var(--alo-paper);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 2.05rem);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.hero-manifesto p {
+  margin: 0;
+}
+
+/* 04. Shared buttons and visibility helpers */
+.cta-enter,
+.text-button {
+  min-height: 48px;
+  border: 1px solid rgba(200, 164, 93, 0.72);
+  background: rgba(11, 11, 11, 0.42);
+  color: var(--alo-paper);
+  cursor: pointer;
+  padding: 0 28px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  transition: background 300ms ease, color 300ms ease, border-color 300ms ease, transform 300ms ease;
+}
+
+.cta-enter:hover,
+.text-button:hover {
+  background: var(--alo-gold);
+  border-color: var(--alo-gold);
+  color: var(--alo-black);
+  transform: translateY(-2px);
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 1.2s ease;
+}
+
+.shrine-content {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 72px;
+}
+
+/* 05. Top navigation */
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 74px;
+  margin: 0 -16px;
+  padding: 12px 16px;
+  background: rgba(245, 241, 232, 0.86);
+  border-bottom: 1px solid rgba(107, 78, 46, 0.14);
+  backdrop-filter: blur(16px);
+}
+
+.brand-link {
+  color: var(--alo-earth);
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 20px;
+  color: rgba(30, 27, 46, 0.72);
+  font-size: 0.9rem;
+}
+
+.nav-links a:hover {
+  color: var(--alo-earth);
+}
+
+.nav-btn {
+  border: 1px solid rgba(107, 78, 46, 0.22);
+  background: transparent;
+  color: var(--alo-earth);
+  cursor: pointer;
+  padding: 6px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.74rem;
+}
+
+.nav-links .hidden,
+.public-view.hidden,
+.dashboard-view.hidden,
+.admin-view.hidden,
+.editor-view.hidden,
+#reader-view.hidden,
+.series-fields.hidden {
+  display: none;
+}
+
+/* 06. Public intro and content sections */
+.intro-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
+  gap: clamp(28px, 7vw, 96px);
+  align-items: end;
+  min-height: calc(100vh - 98px);
+  padding: clamp(72px, 12vw, 140px) 0 80px;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.intro-section h1 {
+  max-width: 780px;
+  margin-top: 16px;
+  color: var(--alo-black);
+  font-size: clamp(3.4rem, 9vw, 8.8rem);
+}
+
+.intro-section > p {
+  margin: 0 0 12px;
+  color: rgba(30, 27, 46, 0.78);
+  font-size: clamp(1.02rem, 2vw, 1.24rem);
+}
+
+.section-block,
+.split-section,
+.submit-band,
+.media-band {
+  padding: clamp(58px, 9vw, 112px) 0;
+  border-top: 1px solid rgba(107, 78, 46, 0.16);
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 30px;
+}
+
+.section-heading h2,
+.media-band h2,
+.submit-band h2,
+.writer-spotlight h2 {
+  max-width: 720px;
+  margin-top: 10px;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.story-card {
+  display: grid;
+  gap: 20px;
+  min-height: 340px;
+  padding: 24px;
+  border: 1px solid rgba(107, 78, 46, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 251, 240, 0.56);
+}
+
+.story-card[role="button"] {
+  cursor: pointer;
+}
+
+.story-card[role="button"]:focus-visible {
+  outline: 2px solid var(--alo-gold-dark);
+  outline-offset: 4px;
+}
+
+.story-card:nth-child(2) {
+  border-color: rgba(184, 107, 255, 0.34);
+}
+
+.story-card:nth-child(3) {
+  border-color: rgba(78, 201, 176, 0.36);
+}
+
+.story-card h3 {
+  margin: 0;
+  color: var(--alo-black);
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  line-height: 1.12;
+}
+
+.story-card p {
+  margin: 0;
+  color: rgba(30, 27, 46, 0.72);
+}
+
+.story-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-self: end;
+  color: var(--alo-earth);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* 07. Media and writing bands */
+.media-band,
+.submit-band {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.media-band {
+  color: var(--alo-paper);
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(16px, calc((100vw - 1180px) / 2));
+  background:
+    linear-gradient(90deg, rgba(11, 11, 11, 0.92), rgba(30, 27, 46, 0.74)),
+    url("/alo-banner.png") center / cover;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.category-grid a {
+  display: grid;
+  min-height: 150px;
+  place-items: end start;
+  padding: 18px;
+  border: 1px solid rgba(107, 78, 46, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 251, 240, 0.5);
+  color: var(--alo-earth);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.category-grid a:hover {
+  background: rgba(200, 164, 93, 0.14);
+}
+
+.split-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(280px, 0.72fr);
+  gap: clamp(28px, 7vw, 88px);
+  align-items: start;
+}
+
+.writer-spotlight p:last-child {
+  max-width: 560px;
+  color: rgba(30, 27, 46, 0.72);
+  font-size: 1.08rem;
+}
+
+blockquote {
+  margin: 0;
+  padding-left: 24px;
+  border-left: 2px solid var(--alo-gold);
+  color: var(--alo-earth);
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 4vw, 3rem);
+  font-style: italic;
+  line-height: 1.22;
+}
+
+cite {
+  display: block;
+  margin-top: 24px;
+  color: rgba(30, 27, 46, 0.58);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.submit-band {
+  color: var(--alo-paper);
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(16px, calc((100vw - 1180px) / 2));
+  background: var(--alo-ink);
+}
+
+.submit-band .eyebrow {
+  color: var(--alo-calm);
+}
+
+.text-button.dark {
+  background: var(--alo-paper);
+  color: var(--alo-ink);
+}
+
+/* 08. Responsive layout */
+@media (max-width: 900px) {
+  .intro-section,
+  .split-section,
+  .media-band,
+  .submit-band {
+    grid-template-columns: 1fr;
+  }
+
+  .media-band,
+  .submit-band {
+    display: grid;
+    align-items: start;
+  }
+
+  .story-grid,
+  .category-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .shrine-content {
+    width: min(100% - 24px, 1180px);
+  }
+
+  .top-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav-links {
+    justify-content: flex-start;
+  }
+
+  .alo-wordmark {
+    font-size: clamp(4.4rem, 23vw, 7rem);
+  }
+
+  .alo-tagline,
+  .eyebrow {
+    letter-spacing: 0.18em;
+  }
+
+  .intro-section {
+    min-height: auto;
+    padding-top: 56px;
+  }
+
+  .story-grid,
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* 09. Auth portal */
+
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(11, 11, 11, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+}
+
+.auth-card {
+    background: var(--alo-paper);
+    padding: 3rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--alo-gold-muted);
+}
+
+.auth-card .hidden {
+    display: none;
+}
+
+.auth-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--alo-gold-dark);
+    margin-bottom: 2rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(30, 27, 46, 0.2);
+    font-family: var(--font-body);
+    outline: none;
+}
+
+.input-group input:focus {
+    border-bottom-color: var(--alo-gold-muted);
+}
+
+.auth-toggle {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.auth-toggle span {
+    color: var(--alo-gold-dark);
+    text-decoration: underline;
+}
+
+/* 10. Writer dashboard */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(200, 164, 93, 0.2);
+}
+
+.writer-info h2 { font-size: 2.5rem; }
+
+.dashboard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.badge {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    background: var(--alo-ink);
+    color: var(--alo-paper);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    letter-spacing: 1px;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--alo-paper);
+    text-align: center;
+}
+
+.stat-card span {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--alo-gold-muted);
+}
+
+.stat-card strong {
+    font-family: var(--font-display);
+    font-size: 2rem;
+}
+
+.cta-gold {
+    background: var(--alo-gold-muted);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cta-gold:hover { background: var(--alo-gold-dark); }
+
+.sub-label {
+    margin: 0 0 1.25rem;
+    color: rgba(30, 27, 46, 0.72);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.offering-card {
+    display: grid;
+    gap: 1rem;
+    min-height: 180px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(107, 78, 46, 0.14);
+}
+
+.offering-category {
+    color: var(--alo-gold-dark);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.offering-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+}
+
+.offering-meta {
+    margin: 0;
+    color: rgba(30, 27, 46, 0.62);
+    font-size: 0.78rem;
+}
+
+.edit-btn {
+    align-self: end;
+    justify-self: start;
+    border: 1px solid rgba(107, 78, 46, 0.22);
+    background: transparent;
+    color: var(--alo-earth);
+    cursor: pointer;
+    padding: 8px 12px;
+}
+
+.empty-state {
+    margin: 0;
+    color: rgba(30, 27, 46, 0.64);
+}
+
+/* 11. Inkwell editor */
+#editor-view {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: var(--alo-paper);
+    z-index: 2000;
+    overflow-y: auto;
+}
+
+.editor-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.editor-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4rem;
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+
+.text-btn:hover { opacity: 1; color: var(--alo-gold-dark); }
+
+/* 12. Editor writing sheet */
+.editor-sheet {
+    display: flex;
+    flex-direction: column;
+    min-height: 70vh;
+}
+
+.editor-select {
+    border: none;
+    background: none;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--alo-gold-muted);
+    font-size: 0.7rem;
+    margin-bottom: 1rem;
+    outline: none;
+}
+
+.story-format-panel {
+    display: grid;
+    gap: 0.85rem;
+    margin-bottom: 1.4rem;
+}
+
+.segmented-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 460px);
+    border: 1px solid rgba(107, 78, 46, 0.16);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.segmented-control label {
+    display: grid;
+    cursor: pointer;
+}
+
+.segmented-control input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.segmented-control span {
+    display: grid;
+    min-height: 42px;
+    place-items: center;
+    padding: 0 1rem;
+    color: rgba(30, 27, 46, 0.68);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.segmented-control input:checked + span {
+    background: var(--alo-ink);
+    color: var(--alo-paper);
+}
+
+.series-fields {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid rgba(107, 78, 46, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 251, 240, 0.58);
+}
+
+.series-row {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+.editor-meta-input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid rgba(107, 78, 46, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.54);
+    color: var(--alo-ink);
+    padding: 0 0.8rem;
+    font-family: var(--font-body);
+}
+
+.editor-title {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    border: none;
+    background: none;
+    outline: none;
+    margin-bottom: 2rem;
+    color: var(--alo-black);
+    width: 100%;
+}
+
+.editor-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+    margin: 0 0 1.5rem;
+    padding: 0.7rem;
+    border: 1px solid rgba(107, 78, 46, 0.14);
+    border-radius: 8px;
+    background: rgba(245, 241, 232, 0.92);
+    backdrop-filter: blur(14px);
+}
+
+.toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.tool-btn,
+.color-tool {
+    display: inline-grid;
+    min-width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid rgba(107, 78, 46, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 251, 240, 0.68);
+    color: var(--alo-earth);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.tool-btn:hover,
+.color-tool:hover {
+    border-color: rgba(143, 107, 45, 0.5);
+    background: rgba(200, 164, 93, 0.14);
+}
+
+.tool-btn.italic {
+    font-style: italic;
+}
+
+.tool-btn.wide {
+    width: auto;
+    padding: 0 0.75rem;
+    font-weight: 600;
+}
+
+.color-tool {
+    position: relative;
+    overflow: hidden;
+}
+
+.color-tool span {
+    border-bottom: 3px solid currentColor;
+    padding-bottom: 2px;
+}
+
+.color-tool input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.editor-body {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    line-height: 1.8;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: none;
+    outline: none;
+    width: 100%;
+    min-height: 400px;
+    color: var(--alo-ink);
+    padding: 0.25rem 0;
+}
+
+/* 13. Rich editor content */
+.editor-body::-webkit-scrollbar { display: none; }
+
+.rich-editor:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(30, 27, 46, 0.38);
+    pointer-events: none;
+}
+
+.rich-editor:focus {
+    border-color: rgba(200, 164, 93, 0.22);
+    padding-inline: 0.75rem;
+}
+
+.rich-editor p {
+    margin: 0 0 1.1rem;
+}
+
+.rich-editor blockquote {
+    margin: 1.4rem 0;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--alo-gold);
+    color: var(--alo-earth);
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+}
+
+.rich-editor figure {
+    margin: 1.6rem 0;
+}
+
+.rich-editor img {
+    display: block;
+    width: 100%;
+    max-height: 520px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.rich-editor .cover-figure {
+    margin-top: 0;
+}
+
+.rich-editor .cover-image {
+    aspect-ratio: 16 / 7;
+}
+
+.rich-editor .embed-figure {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--alo-black);
+}
+
+.rich-editor iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.rich-editor a {
+    color: var(--alo-gold-dark);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+@media (max-width: 640px) {
+    .editor-container {
+        padding: 1rem;
+    }
+
+    .editor-nav,
+    .editor-actions {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .editor-title {
+        font-size: 2.35rem;
+    }
+
+    .editor-toolbar {
+        position: static;
+    }
+
+    .segmented-control,
+    .series-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* 14. Admin dashboard */
+#admin-view {
+    min-height: calc(100vh - 98px);
+    background: var(--alo-paper);
+}
+
+.oracle-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 98px);
+}
+
+.oracle-sidebar {
+    background: var(--alo-ink);
+    color: var(--alo-paper);
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.oracle-sidebar h2 {
+    color: var(--alo-gold-muted);
+    margin-bottom: 3rem;
+    font-size: 1.8rem;
+}
+
+.oracle-menu {
+    flex-grow: 1;
+}
+
+.oracle-tab {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--alo-paper);
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+    padding: 1rem 0;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: 0.3s;
+}
+
+.oracle-tab.active { opacity: 1; color: var(--alo-gold-muted); }
+
+.oracle-stage {
+    padding: 4rem;
+    overflow-y: auto;
+}
+
+.stage-header { margin-bottom: 3rem; }
+
+/* 15. Admin list and actions */
+.oracle-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.item-info h4 { font-family: var(--font-display); font-size: 1.2rem; }
+.item-info span { font-size: 0.7rem; color: var(--alo-gold-dark); }
+
+.admin-actions { display: flex; gap: 1rem; }
+
+.approve-btn { background: #4EC9B0; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+.reject-btn { background: #FF6B6B; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+.feature-btn { border: 1px solid var(--alo-gold-muted); color: var(--alo-gold-dark); background: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+
+#reader-view {
+    min-height: 100vh;
+    background: var(--alo-paper);
+    padding-bottom: 10rem;
+}
+
+.reader-container {
+    max-width: 750px; /* Golden width for reading */
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.reader-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6rem;
+    position: sticky;
+    top: 2rem;
+    z-index: 10;
+}
+
+/* Typography Over Graphics */
+.reader-article {
+    animation: fadeIn 2s ease;
+}
+
+.article-header {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+#reader-title {
+    font-size: 3.5rem;
+    margin: 1.5rem 0;
+    line-height: 1.1;
+}
+
+.reader-body {
+    font-size: 1.25rem;
+    line-height: 1.9; /* Breathable spacing */
+    color: var(--alo-ink);
+}
+
+/* Poetry / Accent Font Style (Page 4) */
+.reader-body blockquote, .poetry-text {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.4rem;
+    margin: 3rem 0;
+    padding-left: 2rem;
+    border-left: 2px solid var(--alo-gold-muted);
+}
+
+/* Focus Mode */
+.focus-mode .reader-nav, 
+.focus-mode .article-footer,
+.focus-mode .top-nav {
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.8s;
+}
+
+.meta-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.5;
+    margin-right: 1.5rem;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 1rem;
+    transition: transform 0.3s;
+}
+
+.icon-btn:hover { transform: scale(1.2); }

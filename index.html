@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Page metadata and app shell assets -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="àlọ́ is a digital storytelling shrine for African imagination, poetry, fiction, comics, and cinematic AI stories.">
+    <title>àlọ́ - Shrine of Tales</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- First-screen shrine entrance -->
+        <section id="hero" class="hero">
+            <div class="hero-inner">
+                <h1 class="alo-wordmark">àlọ́</h1>
+                <p class="alo-tagline">Shrine of Tales</p>
+                <div class="hero-manifesto">
+                    <p>Stories live here.</p>
+                    <p>Words remember us.</p>
+                </div>
+                <button id="enter-btn" class="cta-enter" type="button">Enter Shrine</button>
+            </div>
+        </section>
+
+        <main id="shrine-content" class="shrine-content hidden">
+            <!-- Main navigation and auth-aware dashboard links -->
+            <nav class="top-nav">
+                <a id="go-home" class="brand-link" href="#home" aria-label="àlọ́ home">àlọ́</a>
+                <div class="nav-links">
+                    <a href="#explore" id="nav-explore">Explore</a>
+                    <a href="#stories">Stories</a>
+                    <a href="#poems">Poems</a>
+                    <a href="#screen">Shrine Screen</a>
+                    <a href="#write">Write</a>
+                    <a href="#community">Community</a>
+                    <a href="#dashboard-view" id="nav-dashboard" class="hidden auth-only">My Inkwell</a>
+                    <a href="#admin-view" id="nav-admin-link" class="hidden">Oracle's Chamber</a>
+                    <button id="nav-auth-trigger" class="nav-btn" type="button">Join Circle</button>
+                </div>
+            </nav>
+
+            <!-- Public home introduction -->
+            <section id="home" class="intro-section public-view">
+                <div>
+                    <p class="eyebrow">Digital fire circle</p>
+                    <h1>Stories are treated like offerings.</h1>
+                </div>
+                <p>àlọ́ is a calm literary space for African-rooted stories, poems, essays, comics, and cinematic AI tales.</p>
+            </section>
+
+            <!-- Featured public stories rendered from main.js -->
+            <section id="explore" class="section-block public-view">
+                <div class="section-heading">
+                    <p class="eyebrow">Featured Stories</p>
+                    <h2>New offerings at the shrine</h2>
+                </div>
+                <div id="story-grid" class="story-grid" aria-live="polite"></div>
+            </section>
+
+            <!-- Public media promotion band -->
+            <section id="screen" class="media-band public-view">
+                <div>
+                    <p class="eyebrow">Shrine Screen</p>
+                    <h2>Cinematic stories, motion comics, and narrated poetry.</h2>
+                </div>
+                <button class="text-button" type="button">Watch latest</button>
+            </section>
+
+            <!-- Writer dashboard shown after authentication -->
+            <section id="dashboard-view" class="dashboard-view hidden">
+                <header class="dashboard-header">
+                    <div class="writer-info">
+                        <h2 id="writer-name" class="font-display">Scribe Name</h2>
+                        <span id="writer-level" class="badge">Novice Scribe</span>
+                    </div>
+                    <div class="dashboard-actions">
+                        <button id="logout-writer" class="text-btn" type="button">Log Out</button>
+                        <button id="create-offering" class="cta-gold" type="button">+ New Offering</button>
+                    </div>
+                </header>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card"><span>Works</span><strong id="stat-works">0</strong></div>
+                    <div class="stat-card"><span>Recognition</span><strong id="stat-likes">0</strong></div>
+                </div>
+
+                <h3 class="sub-label">Your Current Ink</h3>
+                <div id="writer-posts-grid" class="story-grid" aria-live="polite"></div>
+            </section>
+
+            <!-- Public content collections -->
+            <section class="section-block public-view">
+                <div class="section-heading">
+                    <p class="eyebrow">Collections</p>
+                    <h2>Choose a shrine</h2>
+                </div>
+                <div class="category-grid">
+                    <a id="stories" href="#stories">Stories</a>
+                    <a id="poems" href="#poems">Poems</a>
+                    <a href="#essays">Essays</a>
+                    <a href="#comics">Comics</a>
+                    <a href="#ai-stories">AI Stories</a>
+                </div>
+            </section>
+
+            <!-- Public community section -->
+            <section id="community" class="split-section public-view">
+                <div class="writer-spotlight">
+                    <p class="eyebrow">Writer Spotlight</p>
+                    <h2>Inkwalker</h2>
+                    <p>A profile shrine for writers, their works, badges, and readers who gather around their voice.</p>
+                </div>
+                <blockquote>
+                    "A story is a lantern. Hold it well, and it remembers the road."
+                    <cite>Quote of the Day</cite>
+                </blockquote>
+            </section>
+
+            <!-- Public writing call-to-action -->
+            <section id="write" class="submit-band public-view">
+                <p class="eyebrow">Write to àlọ́</p>
+                <h2>Drafts become offerings, then published works.</h2>
+                <button class="text-button dark" type="button">Begin writing</button>
+            </section>
+
+            <!-- Authentication modal -->
+            <div id="auth-modal" class="modal-overlay hidden">
+                <div class="auth-card">
+                    <button id="close-auth" class="close-btn" type="button" aria-label="Close auth modal">&times;</button>
+                    <h2 class="auth-title">Enter the Circle</h2>
+                    <p class="auth-subtitle">Become a Keeper of Ink</p>
+
+                    <form id="auth-form">
+                        <div class="input-group" id="name-field">
+                            <input type="text" id="auth-fullname" placeholder="Your Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="email" id="auth-email" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="auth-password" placeholder="Password" required>
+                        </div>
+
+                        <button type="submit" id="auth-submit" class="cta-enter">Begin Journey</button>
+                    </form>
+
+                    <p class="auth-toggle">
+                        Already a member? <span id="toggle-mode">Step Inside</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Admin dashboard for reviewing published offerings -->
+            <section id="admin-view" class="admin-view hidden">
+                <div class="oracle-container">
+                    <aside class="oracle-sidebar">
+                        <h2 class="font-display">The Oracle</h2>
+                        <nav class="oracle-menu">
+                            <button class="oracle-tab active" type="button" data-tab="submissions">Pending Offerings</button>
+                            <button class="oracle-tab" type="button" data-tab="registry">The Registry</button>
+                            <button class="oracle-tab" type="button" data-tab="featured">Featured Stills</button>
+                        </nav>
+                        <button id="exit-oracle" class="text-btn" type="button">&larr; Leave Chamber</button>
+                    </aside>
+
+                    <div class="oracle-stage">
+                        <header class="stage-header">
+                            <h1 id="stage-title">Pending Offerings</h1>
+                            <p id="stage-count">Checking the ink...</p>
+                        </header>
+
+                        <div id="oracle-content-list" class="oracle-list" aria-live="polite"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- THE SACRED READER -->
+<section id="reader-view" class="hidden">
+    <div class="reader-container">
+        <!-- Reader Navigation -->
+        <header class="reader-nav">
+            <button id="exit-reader" class="text-btn" type="button">← Leave Story</button>
+            <div class="reader-tools">
+                <span id="reading-time" class="meta-label">5 min read</span>
+                <button id="toggle-focus" class="icon-btn" type="button" title="Focus Mode">✨</button>
+                <button id="add-bookmark" class="icon-btn" type="button" title="Bookmark">🔖</button>
+            </div>
+        </header>
+
+        <!-- The Content -->
+        <article class="reader-article">
+            <header class="article-header">
+                <span id="reader-category" class="offering-category">Folklore</span>
+                <h1 id="reader-title" class="font-display">The Moon's First Song</h1>
+                <div class="article-meta">
+                    <span id="reader-author">By Elder Storyteller</span>
+                </div>
+            </header>
+
+            <div id="reader-body" class="reader-body">
+                <!-- Story text goes here -->
+            </div>
+
+            <!-- The "Offering" Footer -->
+            <footer class="article-footer">
+                <div class="divider">✦</div>
+                <p>You have finished this offering.</p>
+                <button id="toggle-comments" class="text-btn" type="button">Listen to the Circle (Comments)</button>
+            </footer>
+        </article>
+    </div>
+</section>
+
+            <!-- Inkwell editor for drafts and published offerings -->
+            <section id="editor-view" class="editor-view hidden">
+                <div class="editor-container">
+                    <header class="editor-nav">
+                        <button id="close-editor" class="text-btn" type="button">&larr; Back to Inkwell</button>
+                        <div class="editor-actions">
+                            <button id="save-draft" class="text-btn" type="button">Save Draft</button>
+                            <button id="publish-offering" class="cta-gold" type="button">Offer to Shrine</button>
+                        </div>
+                    </header>
+
+                    <div class="editor-sheet">
+                        <select id="post-type" class="editor-select">
+                            <option value="story">Story</option>
+                            <option value="poem">Poetry</option>
+                            <option value="essay">Essay</option>
+                            <option value="ai-story">AI Tale</option>
+                        </select>
+
+                        <div class="story-format-panel" aria-label="Story format">
+                            <div class="segmented-control">
+                                <label>
+                                    <input type="radio" name="story-format" value="standalone" checked>
+                                    <span>One story</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="story-format" value="series">
+                                    <span>Series episode</span>
+                                </label>
+                            </div>
+
+                            <div id="series-fields" class="series-fields hidden">
+                                <input type="text" id="series-title" class="editor-meta-input" placeholder="Series title, e.g. MY YELLOW BUS GIST">
+                                <div class="series-row">
+                                    <input type="number" id="episode-number" class="editor-meta-input" min="1" step="1" placeholder="Episode no.">
+                                    <input type="text" id="episode-title" class="editor-meta-input" placeholder="Episode title">
+                                </div>
+                                <select id="release-cadence" class="editor-meta-input">
+                                    <option value="weekly">Weekly release</option>
+                                    <option value="biweekly">Biweekly release</option>
+                                    <option value="monthly">Monthly release</option>
+                                    <option value="complete">Complete series</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <input type="text" id="post-title" class="editor-title" placeholder="Title your offering..." spellcheck="false">
+
+                        <div class="editor-toolbar" aria-label="Offering formatting tools">
+                            <div class="toolbar-group">
+                                <button class="tool-btn" type="button" data-command="bold" aria-label="Bold text" title="Bold">B</button>
+                                <button class="tool-btn italic" type="button" data-command="italic" aria-label="Italic text" title="Italic">I</button>
+                                <button class="tool-btn" type="button" data-command="formatBlock" data-value="blockquote" aria-label="Quote" title="Quote">&ldquo;</button>
+                            </div>
+                            <div class="toolbar-group">
+                                <label class="color-tool" aria-label="Text color" title="Text color">
+                                    <span>A</span>
+                                    <input id="text-color" type="color" value="#1e1b2e">
+                                </label>
+                                <button class="tool-btn" type="button" data-command="justifyLeft" aria-label="Align left" title="Align left">L</button>
+                                <button class="tool-btn" type="button" data-command="justifyCenter" aria-label="Align center" title="Align center">C</button>
+                                <button class="tool-btn" type="button" data-command="justifyRight" aria-label="Align right" title="Align right">R</button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button id="add-link" class="tool-btn wide" type="button">Link</button>
+                                <button id="add-image" class="tool-btn wide" type="button">Image</button>
+                                <button id="add-cover" class="tool-btn wide" type="button">Cover</button>
+                                <button id="add-youtube" class="tool-btn wide" type="button">YouTube</button>
+                            </div>
+                        </div>
+
+                        <div
+                            id="post-content"
+                            class="editor-body rich-editor"
+                            contenteditable="true"
+                            role="textbox"
+                            aria-multiline="true"
+                            data-placeholder="Let the words flow here..."
+                            spellcheck="true"
+                        ></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
