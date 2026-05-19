@@ -5,13 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="àlọ́ is a digital storytelling shrine for African imagination, poetry, fiction, comics, and cinematic AI stories.">
+    <meta property="og:title" content="àlọ́ - Shrine of Tales">
+    <meta property="og:description" content="A digital storytelling shrine for African imagination, poetry, fiction, comics, and cinematic AI stories.">
+    <meta property="og:image" content="/alo-banner.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="àlọ́ - Shrine of Tales">
+    <meta name="twitter:description" content="A digital storytelling shrine for African imagination, poetry, fiction, comics, and cinematic AI stories.">
+    <meta name="twitter:image" content="/alo-banner.png">
     <title>àlọ́ - Shrine of Tales</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="apple-touch-icon" href="/favicon.png">
     <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
-    <div id="app-loading" class="app-loading hidden" role="status" aria-live="polite" aria-label="Loading">
+    <div id="app-loading" class="app-loading" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-mark">àlọ́</div>
         <p id="app-loading-text">Opening the shrine...</p>
     </div>
@@ -130,11 +138,11 @@
                     <h2>Choose a shrine</h2>
                 </div>
                 <div class="category-grid">
-                    <a id="stories" href="#stories">Stories</a>
-                    <a id="poems" href="#poems">Poems</a>
-                    <a href="#essays">Essays</a>
-                    <a href="#comics">Comics</a>
-                    <a href="#ai-stories">AI Stories</a>
+                    <a id="stories" href="#stories" data-shrine-filter="stories">Stories</a>
+                    <a id="poems" href="#poems" data-shrine-filter="poems">Poems</a>
+                    <a href="#essays" data-shrine-filter="essays">Essays</a>
+                    <a href="#comics" data-shrine-filter="comics">Comics</a>
+                    <a href="#ai-stories" data-shrine-filter="ai-stories">AI Stories</a>
                 </div>
             </section>
 

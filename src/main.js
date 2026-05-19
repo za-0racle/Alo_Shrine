@@ -8,6 +8,7 @@ const enterBtn = document.querySelector("#enter-btn");
 const hero = document.querySelector("#hero");
 const content = document.querySelector("#shrine-content");
 const storyGrid = document.querySelector("#story-grid");
+const storySectionHeading = document.querySelector("#explore .section-heading h2");
 const appLoading = document.querySelector("#app-loading");
 const appLoadingText = document.querySelector("#app-loading-text");
 
@@ -33,6 +34,7 @@ const navAdmin = document.querySelector("#nav-admin-link");
 const goHome = document.querySelector("#go-home");
 const publicNavLinks = document.querySelectorAll('.nav-links a[href^="#"]:not(#nav-dashboard):not(#nav-reader-profile):not(#nav-admin-link)');
 const visitorNavLinks = document.querySelectorAll(".visitor-nav");
+const shrineFilterLinks = document.querySelectorAll("[data-shrine-filter]");
 const dashboardView = document.querySelector("#dashboard-view");
 const adminView = document.querySelector("#admin-view");
 const readerView = document.querySelector("#reader-view");
@@ -89,10 +91,36 @@ let currentEditingPostWasSeries = false;
 let currentEditingVisionId = null;
 let currentOpenPostId = null;
 let currentOpenPostTitle = "";
+let currentOpenPost = null;
+let publicOfferingsCache = null;
+let activeShrineFilter = "all";
+
+const shrineFilters = {
+  stories: {
+    label: "Stories at the shrine",
+    types: ["story", "series", "folklore", "narrative"],
+  },
+  poems: {
+    label: "Poems at the shrine",
+    types: ["poem", "poetry"],
+  },
+  essays: {
+    label: "Essays at the shrine",
+    types: ["essay"],
+  },
+  comics: {
+    label: "Comics at the shrine",
+    types: ["comic"],
+  },
+  "ai-stories": {
+    label: "AI stories at the shrine",
+    types: ["ai-story", "audio-story"],
+  },
+};
 
 const setAppLoading = (isLoading, message = "Opening the shrine...") => {
   if (!appLoading) return;
-  appLoadingText.textContent = message;
+  if (appLoadingText) appLoadingText.textContent = message;
   appLoading.classList.toggle("hidden", !isLoading);
 };
 
@@ -131,6 +159,71 @@ const getStoryShareUrl = (postId = currentOpenPostId) => {
   url.searchParams.set("story", postId);
   url.hash = "reader";
   return url.toString();
+};
+
+const getAbsoluteAssetUrl = (path) => new URL(path, window.location.origin).toString();
+
+const getFirstImageFromContent = (content = "") => {
+  const template = document.createElement("template");
+  template.innerHTML = normalizeStoredContent(content);
+  const image = template.content.querySelector("img[src]");
+  return image?.src || "";
+};
+
+const getPostCoverImage = (post = currentOpenPost) =>
+  post?.series?.cover_url || getFirstImageFromContent(post?.content || "") || getAbsoluteAssetUrl("/alo-banner.png");
+
+const getShareTitle = (post = currentOpenPost) => {
+  if (!post) return currentOpenPostTitle || "A story from alo";
+  if (getStoryFormat(post) === "series") return post.series?.title || getDisplayTitle(post);
+  return getDisplayTitle(post);
+};
+
+const getShareMessage = (post = currentOpenPost) => {
+  if (!post) return `Read "${currentOpenPostTitle || "this story"}" on alo.`;
+
+  if (getStoryFormat(post) === "series") {
+    const seriesName = post.series?.title || getDisplayTitle(post);
+    const episode = post.series_order ? `Episode ${post.series_order}` : "A new episode";
+    const episodeTitle = post.title ? `, "${post.title}"` : "";
+    return `${episode}${episodeTitle} from ${seriesName} is waiting at alo. Step into the series before the next twist finds you.`;
+  }
+
+  return `Read "${getDisplayTitle(post)}" on alo, where stories are treated like offerings.`;
+};
+
+const upsertMetaTag = (selector, attributes) => {
+  let tag = document.head.querySelector(selector);
+
+  if (!tag) {
+    tag = document.createElement("meta");
+    document.head.appendChild(tag);
+  }
+
+  Object.entries(attributes).forEach(([name, value]) => {
+    tag.setAttribute(name, value);
+  });
+};
+
+const updateShareMetadata = (post = currentOpenPost) => {
+  if (!post) return;
+
+  const title = getShareTitle(post);
+  const description = getShareMessage(post);
+  const image = getPostCoverImage(post);
+  const url = getStoryShareUrl(post.id);
+
+  document.title = `${title} - Shrine of Tales`;
+  upsertMetaTag('meta[name="description"]', { name: "description", content: description });
+  upsertMetaTag('meta[property="og:title"]', { property: "og:title", content: title });
+  upsertMetaTag('meta[property="og:description"]', { property: "og:description", content: description });
+  upsertMetaTag('meta[property="og:image"]', { property: "og:image", content: image });
+  upsertMetaTag('meta[property="og:url"]', { property: "og:url", content: url });
+  upsertMetaTag('meta[property="og:type"]', { property: "og:type", content: "article" });
+  upsertMetaTag('meta[name="twitter:card"]', { name: "twitter:card", content: "summary_large_image" });
+  upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title", content: title });
+  upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description", content: description });
+  upsertMetaTag('meta[name="twitter:image"]', { name: "twitter:image", content: image });
 };
 
 const isMissingColumnError = (error, columnName) =>
@@ -360,6 +453,8 @@ const getStoryExcerpt = (post) => {
 };
 
 const getPublicOfferings = async () => {
+  if (publicOfferingsCache) return publicOfferingsCache;
+
   const { data: posts = [], error } = await supabase
     .from("posts")
     .select("*, series(id, title, cover_url)")
@@ -373,27 +468,60 @@ const getPublicOfferings = async () => {
       hint: error.hint,
       code: error.code,
     });
-    return [];
+    publicOfferingsCache = [];
+    return publicOfferingsCache;
   }
 
-  if (!posts.length) return [];
+  if (!posts.length) {
+    publicOfferingsCache = [];
+    return publicOfferingsCache;
+  }
 
   const profilesById = await getAuthorProfiles(posts);
-  return posts.map((post) => ({
+  publicOfferingsCache = posts.map((post) => ({
     ...post,
     authorName: profilesById.get(post.author_id)?.full_name || "Unknown scribe",
   }));
+
+  return publicOfferingsCache;
+};
+
+const getFilteredOfferings = (offerings, filterName = activeShrineFilter) => {
+  const filter = shrineFilters[filterName];
+  if (!filter) return offerings;
+
+  return offerings.filter((post) => {
+    const type = (post.type || "").toLowerCase();
+    return filter.types.includes(type) || (filterName === "stories" && getStoryFormat(post) === "series");
+  });
+};
+
+const updateShrineFilterState = (filterName = "all") => {
+  activeShrineFilter = filterName;
+
+  shrineFilterLinks.forEach((link) => {
+    const isActive = link.dataset.shrineFilter === filterName;
+    link.classList.toggle("is-active", isActive);
+    link.setAttribute("aria-pressed", String(isActive));
+  });
+
+  if (storySectionHeading) {
+    storySectionHeading.textContent = shrineFilters[filterName]?.label || "New offerings at the shrine";
+  }
 };
 
 // Render published public offerings without the old placeholder cards.
-const renderFeaturedStories = async () => {
-  const offerings = await getPublicOfferings();
+const renderFeaturedStories = async (filterName = activeShrineFilter) => {
+  updateShrineFilterState(filterName);
+  const offerings = getFilteredOfferings(await getPublicOfferings(), filterName);
   storyGrid.innerHTML = "";
 
   if (!offerings.length) {
     const emptyState = document.createElement("p");
     emptyState.className = "empty-state";
-    emptyState.textContent = "No published offerings yet.";
+    emptyState.textContent = shrineFilters[filterName]
+      ? "No offerings have been placed in this shrine yet."
+      : "No published offerings yet.";
     storyGrid.appendChild(emptyState);
     return;
   }
@@ -938,6 +1066,7 @@ const saveOffering = async (status) => {
       : "Draft saved to your inkwell.";
 
   alert(savedMessage);
+  publicOfferingsCache = null;
   closeEditor();
   await showView("dashboard");
 };
@@ -1031,7 +1160,22 @@ navReaderProfile?.addEventListener("click", (event) => {
 publicNavLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
+    const filterName = link.getAttribute("href")?.replace("#", "");
+
+    if (shrineFilters[filterName]) {
+      renderFeaturedStories(filterName).then(() => showView("home", "#explore"));
+      return;
+    }
+
     showView("home", link.getAttribute("href"));
+  });
+});
+
+shrineFilterLinks.forEach((link) => {
+  link.setAttribute("role", "button");
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    renderFeaturedStories(link.dataset.shrineFilter).then(() => showView("home", "#explore"));
   });
 });
 
@@ -1262,9 +1406,10 @@ const updateShareLinks = () => {
   if (!currentOpenPostId) return;
 
   const shareUrl = getStoryShareUrl(currentOpenPostId);
-  const title = currentOpenPostTitle || "A story from àlọ́";
+  const title = getShareTitle();
+  const message = getShareMessage();
   const encodedUrl = encodeURIComponent(shareUrl);
-  const encodedText = encodeURIComponent(`${title} - Shrine of Tales`);
+  const encodedText = encodeURIComponent(`${title} - ${message}`);
 
   document.querySelector("#share-whatsapp")?.setAttribute("href", `https://wa.me/?text=${encodedText}%20${encodedUrl}`);
   document.querySelector("#share-threads")?.setAttribute("href", `https://www.threads.net/intent/post?text=${encodedText}%20${encodedUrl}`);
@@ -1289,13 +1434,14 @@ const shareCurrentStory = async () => {
   if (!currentOpenPostId) return;
 
   const shareUrl = getStoryShareUrl(currentOpenPostId);
-  const title = currentOpenPostTitle || "Shrine of Tales";
+  const title = getShareTitle();
+  const text = getShareMessage();
 
   if (navigator.share) {
     try {
       await navigator.share({
         title,
-        text: `Read "${title}" on àlọ́.`,
+        text,
         url: shareUrl,
       });
       return;
@@ -1336,6 +1482,7 @@ async function openStory(postId) {
   }
 
   const content = post.content || "";
+  currentOpenPost = post;
   currentOpenPostTitle = getDisplayTitle(post);
 
   document.querySelector("#reader-title").textContent = currentOpenPostTitle;
@@ -1343,6 +1490,7 @@ async function openStory(postId) {
   document.querySelector("#reader-category").textContent = getSeriesLabel(post);
   document.querySelector("#reader-body").innerHTML = normalizeStoredContent(content);
   document.querySelector("#reading-time").textContent = `${calculateReadingTime(content)} min read`;
+  updateShareMetadata(post);
   updateShareLinks();
   await updateBookmarkButton(postId);
   await refreshEchoComposer();
@@ -1428,7 +1576,7 @@ const renderMediaCard = (item) => {
   const title = document.createElement("h3");
   const meta = document.createElement("span");
   const videoId = item.media_type === "youtube" ? getYoutubeID(item.url) : "";
-  const thumbUrl = item.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : "");
+  const thumbUrl = item.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
 
   card.className = "video-card";
   card.tabIndex = 0;
@@ -1531,8 +1679,9 @@ async function loadShrineScreen() {
 
   const { data: mediaItems = [], error } = await supabase
     .from("media")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("title, url, media_type, thumbnail_url, created_at")
+    .order("created_at", { ascending: false })
+    .limit(24);
 
   if (error) {
     const emptyState = document.createElement("p");
@@ -1551,7 +1700,9 @@ async function loadShrineScreen() {
     return;
   }
 
-  mediaItems.forEach((item) => videoGrid.appendChild(renderMediaCard(item)));
+  const fragment = document.createDocumentFragment();
+  mediaItems.forEach((item) => fragment.appendChild(renderMediaCard(item)));
+  videoGrid.appendChild(fragment);
 }
 
 dashboardTabs.forEach((button) => {
@@ -1645,19 +1796,28 @@ videoModal?.addEventListener("click", (event) => {
 
 // Initial page setup.
 document.body.style.overflowY = "hidden";
-renderFeaturedStories();
-renderScreenPreviews();
-renderAuthMode();
-initSession();
+const bootstrapApp = async () => {
+  setAppLoading(true, "Opening the shrine...");
+  renderAuthMode();
 
-const initialStoryId = new URLSearchParams(window.location.search).get("story");
-if (initialStoryId) {
-  hero?.classList.add("lifted");
-  content?.classList.remove("hidden");
-  content?.classList.add("visible");
-  document.body.style.overflowY = "auto";
-  openStory(initialStoryId);
-}
+  const initialStoryId = new URLSearchParams(window.location.search).get("story");
+
+  try {
+    await Promise.all([renderFeaturedStories(), renderScreenPreviews(), initSession()]);
+
+    if (initialStoryId) {
+      hero?.classList.add("lifted");
+      content?.classList.remove("hidden");
+      content?.classList.add("visible");
+      document.body.style.overflowY = "auto";
+      await openStory(initialStoryId);
+    }
+  } finally {
+    setAppLoading(false);
+  }
+};
+
+bootstrapApp();
 
 
 const renderEchoEmptyState = (message) => {

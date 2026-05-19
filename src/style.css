@@ -171,26 +171,30 @@ a {
   place-items: center;
   gap: 0.75rem;
   align-content: center;
-  background: rgba(11, 11, 11, 0.82);
+  background: var(--alo-black);
   color: var(--alo-paper);
   backdrop-filter: blur(10px);
   transition: opacity 0.22s ease;
 }
 
 .app-loading.hidden {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .loading-mark {
   display: grid;
-  width: 86px;
-  height: 86px;
+  width: 96px;
+  height: 96px;
   place-items: center;
+  background: url("/favicon.svg") center / 64px auto no-repeat;
   border: 1px solid var(--alo-gold-muted);
   border-radius: 50%;
   color: var(--alo-gold);
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 0;
+  box-shadow: 0 22px 70px rgba(200, 164, 93, 0.16);
   animation: alo-spin 1s linear infinite;
 }
 
@@ -504,10 +508,20 @@ h2 {
   color: var(--alo-earth);
   font-family: var(--font-display);
   font-size: 1.35rem;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 }
 
-.category-grid a:hover {
+.category-grid a:hover,
+.category-grid a:focus-visible,
+.category-grid a.is-active {
   background: rgba(200, 164, 93, 0.14);
+  border-color: rgba(143, 107, 45, 0.44);
+  color: var(--alo-black);
+}
+
+.category-grid a:focus-visible {
+  outline: 2px solid var(--alo-gold-dark);
+  outline-offset: 4px;
 }
 
 .split-section {
@@ -1791,6 +1805,8 @@ cite {
 
 .video-card {
     cursor: pointer;
+    content-visibility: auto;
+    contain-intrinsic-size: 320px;
     transition: transform 0.5s ease;
 }
 
