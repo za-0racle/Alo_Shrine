@@ -32,6 +32,8 @@ const navAuthTrigger = document.querySelector("#nav-auth-trigger");
 const navDashboard = document.querySelector("#nav-dashboard");
 const navAdmin = document.querySelector("#nav-admin-link");
 const goHome = document.querySelector("#go-home");
+const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
+const primaryNav = document.querySelector("#primary-nav");
 const publicNavLinks = document.querySelectorAll('.nav-links a[href^="#"]:not(#nav-dashboard):not(#nav-reader-profile):not(#nav-admin-link)');
 const visitorNavLinks = document.querySelectorAll(".visitor-nav");
 const shrineFilterLinks = document.querySelectorAll("[data-shrine-filter]");
@@ -568,8 +570,23 @@ const scrollToSection = (selector) => {
   target?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
+const closeMobileNav = () => {
+  primaryNav?.classList.remove("is-open");
+  mobileNavToggle?.classList.remove("is-open");
+  mobileNavToggle?.setAttribute("aria-expanded", "false");
+  mobileNavToggle?.setAttribute("aria-label", "Open navigation");
+};
+
+const toggleMobileNav = () => {
+  const isOpen = primaryNav?.classList.toggle("is-open");
+  mobileNavToggle?.classList.toggle("is-open", Boolean(isOpen));
+  mobileNavToggle?.setAttribute("aria-expanded", String(Boolean(isOpen)));
+  mobileNavToggle?.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+};
+
 // Switch between public shrine pages, private dashboard, reader, screen, and admin.
 const showView = async (viewName, targetSelector = "#home") => {
+  closeMobileNav();
   const showingDashboard = viewName === "dashboard";
   const showingAdmin = viewName === "admin";
   const showingScreen = viewName === "screen";
@@ -1207,6 +1224,8 @@ goHome.addEventListener("click", (event) => {
   event.preventDefault();
   showView("home", "#home");
 });
+
+mobileNavToggle?.addEventListener("click", toggleMobileNav);
 
 openScreenBtn?.addEventListener("click", () => {
   showView("screen");
