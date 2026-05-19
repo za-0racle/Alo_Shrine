@@ -243,9 +243,28 @@ a {
 .brand-link {
   color: var(--alo-earth);
   font-family: var(--font-display);
-  font-size: 1.9rem;
   font-weight: 600;
   line-height: 1;
+}
+
+.brand-word,
+.brand-tagline {
+  display: block;
+}
+
+.brand-word {
+  font-size: 1.9rem;
+}
+
+.brand-tagline {
+  margin-top: 0.2rem;
+  color: rgba(107, 78, 46, 0.68);
+  font-family: var(--font-body);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .nav-links {
@@ -2202,20 +2221,8 @@ iframe {
 }
 
 .brand-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.brand-link::before {
-  content: "";
-  display: inline-block;
-  width: 34px;
-  height: 34px;
-  background: url("/alo-logo.png") center / contain no-repeat;
-  border: 1px solid rgba(143, 107, 45, 0.24);
-  border-radius: 50%;
-  box-shadow: 0 8px 20px rgba(143, 107, 45, 0.1);
+  display: inline-grid;
+  gap: 0.12rem;
 }
 
 .mobile-nav-toggle {
@@ -2816,12 +2823,16 @@ iframe {
   }
 
   .brand-link {
+    gap: 0.08rem;
+  }
+
+  .brand-word {
     font-size: 1.6rem;
   }
 
-  .brand-link::before {
-    width: 30px;
-    height: 30px;
+  .brand-tagline {
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
   }
 
   .alo-wordmark {
