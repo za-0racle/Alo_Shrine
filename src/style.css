@@ -188,7 +188,7 @@ a {
   width: 96px;
   height: 96px;
   place-items: center;
-  background: url("/favicon.svg") center / 64px auto no-repeat;
+  background: url("/alo-logo.png") center / 64px auto no-repeat;
   border: 1px solid var(--alo-gold-muted);
   border-radius: 50%;
   color: var(--alo-gold);
