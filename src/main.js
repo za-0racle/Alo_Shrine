@@ -663,10 +663,16 @@ const scrollToSection = (selector) => {
   target?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
+const waitForNextPaint = () =>
+  new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+
 const closeMobileNav = () => {
   primaryNav?.classList.remove("is-open");
   inkwellSidebar?.classList.remove("is-open");
   oracleSidebar?.classList.remove("is-open");
+  document.body.classList.remove("is-panel-open");
   mobileNavToggle?.classList.remove("is-open");
   mobileNavToggle?.setAttribute("aria-expanded", "false");
   mobileNavToggle?.setAttribute("aria-label", "Open navigation");
@@ -683,6 +689,7 @@ const toggleMobileNav = () => {
     const otherPanel = inDashboardView ? oracleSidebar : inkwellSidebar;
     otherPanel?.classList.remove("is-open");
     const isOpen = activePanel?.classList.toggle("is-open");
+    document.body.classList.toggle("is-panel-open", Boolean(isOpen));
     mobileNavToggle?.classList.toggle("is-open", Boolean(isOpen));
     mobileNavToggle?.setAttribute("aria-expanded", String(Boolean(isOpen)));
     mobileNavToggle?.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
@@ -698,6 +705,9 @@ const toggleMobileNav = () => {
 const setPanelState = (panel, toggle, isOpen, openLabel, closeLabel) => {
   if (!panel || !toggle) return;
   panel.classList.toggle("is-open", isOpen);
+  if (panel === inkwellSidebar || panel === oracleSidebar) {
+    document.body.classList.toggle("is-panel-open", Boolean(isOpen));
+  }
   toggle.setAttribute("aria-expanded", String(isOpen));
   toggle.textContent = isOpen ? closeLabel : openLabel;
 };
@@ -710,7 +720,9 @@ const syncSidebarPanelsForViewport = () => {
 
 // J07. View routing and page transitions.
 const showView = async (viewName, targetSelector = "#home") => {
+  document.body.classList.add("is-view-transitioning");
   closeMobileNav();
+  await waitForNextPaint();
   if (window.matchMedia("(max-width: 720px)").matches) {
     setPanelState(inkwellSidebar, inkwellSidebarToggle, false, "Open Inkwell Menu", "Close Inkwell Menu");
     setPanelState(oracleSidebar, oracleSidebarToggle, false, "Open Oracle Menu", "Close Oracle Menu");
@@ -745,6 +757,7 @@ const showView = async (viewName, targetSelector = "#home") => {
 
     await loadWriterDashboard();
     scrollToSection("#dashboard-view");
+    document.body.classList.remove("is-view-transitioning");
     return;
   }
 
@@ -759,12 +772,14 @@ const showView = async (viewName, targetSelector = "#home") => {
 
     await loadOracleSubmissions();
     scrollToSection("#admin-view");
+    document.body.classList.remove("is-view-transitioning");
     return;
   }
 
   if (showingScreen) {
     await loadShrineScreen();
     scrollToSection("#shrine-screen-view");
+    document.body.classList.remove("is-view-transitioning");
     return;
   }
 
@@ -779,15 +794,18 @@ const showView = async (viewName, targetSelector = "#home") => {
 
     await loadTheScroll();
     scrollToSection("#scroll-view");
+    document.body.classList.remove("is-view-transitioning");
     return;
   }
 
   if (showingWriterProfile) {
     scrollToSection("#writer-profile-view");
+    document.body.classList.remove("is-view-transitioning");
     return;
   }
 
   scrollToSection(targetSelector);
+  document.body.classList.remove("is-view-transitioning");
 };
 
 // J08. Auth modal controls.
@@ -1153,6 +1171,7 @@ async function loadWriterDashboard() {
 
 // J12. Session-aware navigation.
 async function initSession() {
+  await authActions.enforceSessionPolicy();
   const user = await authActions.getCurrentUser();
 
   if (!user) {
@@ -1550,13 +1569,19 @@ profileAvatarPicker?.addEventListener("change", handleProfileAvatarChange);
 
 // J17. Hero entrance animation.
 enterBtn?.addEventListener("click", () => {
+  if (!hero || !content) return;
   hero.classList.add("lifted");
-
-  setTimeout(() => {
+  let revealed = false;
+  const revealShrine = () => {
+    if (revealed) return;
+    revealed = true;
     content.classList.remove("hidden");
     content.classList.add("visible");
     document.body.style.overflowY = "auto";
-  }, 600);
+  };
+
+  hero.addEventListener("transitionend", revealShrine, { once: true });
+  setTimeout(revealShrine, 700);
 });
 
 // J18. Auth modal event listeners.
@@ -1823,6 +1848,18 @@ oracleSidebarToggle?.addEventListener("click", () => {
   setPanelState(oracleSidebar, oracleSidebarToggle, nextState, "Open Oracle Menu", "Close Oracle Menu");
 });
 window.addEventListener("resize", syncSidebarPanelsForViewport);
+document.addEventListener("click", (event) => {
+  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  if (!isMobile || !document.body.classList.contains("is-panel-open")) return;
+
+  const target = event.target;
+  if (
+    target instanceof Element &&
+    !target.closest("#inkwell-sidebar-panel, #oracle-sidebar-panel, #mobile-nav-toggle, #inkwell-sidebar-toggle, #oracle-sidebar-toggle")
+  ) {
+    closeMobileNav();
+  }
+});
 
 openScreenBtn?.addEventListener("click", () => {
   showView("screen");
@@ -2489,6 +2526,8 @@ const bootstrapApp = async () => {
   setAppLoading(true, "Opening the shrine...");
   renderAuthMode();
   syncSidebarPanelsForViewport();
+  await authActions.initializeSessionGuard();
+  await authActions.enforceSessionPolicy();
 
   const initialStoryId = new URLSearchParams(window.location.search).get("story");
 
