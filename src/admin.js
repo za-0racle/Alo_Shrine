@@ -53,4 +53,47 @@ export const oracleActions = {
 
     return { data, error };
   },
+
+  getFeaturedWorks: async () => {
+    const { data: posts = [], error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("status", "featured")
+      .order("created_at", { ascending: false });
+
+    if (error || !posts.length) return { data: posts, error };
+
+    const authorIds = [...new Set(posts.map((post) => post.author_id).filter(Boolean))];
+    if (!authorIds.length) return { data: posts, error: null };
+
+    const { data: profiles = [] } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", authorIds);
+
+    const profilesById = new Map(profiles.map((profile) => [profile.id, profile]));
+    return {
+      data: posts.map((post) => ({
+        ...post,
+        profiles: profilesById.get(post.author_id) || null,
+      })),
+      error: null,
+    };
+  },
+
+  getRegistryProfiles: async () => {
+    let { data: profiles = [], error } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, role, writer_level, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error && ["username", "created_at"].some((column) => error.message?.toLowerCase().includes(column))) {
+      ({ data: profiles = [], error } = await supabase
+        .from("profiles")
+        .select("id, full_name, role, writer_level")
+        .order("id", { ascending: false }));
+    }
+
+    return { data: profiles, error };
+  },
 };

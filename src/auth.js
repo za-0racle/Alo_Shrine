@@ -139,5 +139,19 @@ export const authActions = {
         currentUserCache = null;
         currentUserPromise = null;
         return authActions.getCurrentUser();
+    },
+
+    updatePassword: async (password) => {
+        const { data, error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        return data;
+    },
+
+    sendPasswordReset: async (email) => {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin,
+        });
+        if (error) throw error;
+        return data;
     }
 };

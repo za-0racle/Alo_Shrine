@@ -1,9 +1,9 @@
-// Imports: app services used by the UI.
+// J01. Imports: app services used by the UI.
 import { oracleActions } from "./admin";
 import { authActions } from "./auth";
 import { supabase } from "../Lib/supabaseClient.js";
 
-// Core page elements.
+// J02. Core page elements.
 const enterBtn = document.querySelector("#enter-btn");
 const hero = document.querySelector("#hero");
 const content = document.querySelector("#shrine-content");
@@ -12,7 +12,7 @@ const storySectionHeading = document.querySelector("#explore .section-heading h2
 const appLoading = document.querySelector("#app-loading");
 const appLoadingText = document.querySelector("#app-loading-text");
 
-// Auth modal elements.
+// J03. Auth modal elements.
 const authModal = document.querySelector("#auth-modal");
 const authForm = document.querySelector("#auth-form");
 const authEmail = document.querySelector("#auth-email");
@@ -26,7 +26,7 @@ const authTitle = document.querySelector(".auth-title");
 const authSubtitle = document.querySelector(".auth-subtitle");
 const authToggle = document.querySelector(".auth-toggle");
 
-// Navigation and view elements.
+// J04. Navigation and view elements.
 const writeButton = document.querySelector("#write .text-button");
 const navAuthTrigger = document.querySelector("#nav-auth-trigger");
 const navDashboard = document.querySelector("#nav-dashboard");
@@ -41,16 +41,46 @@ const dashboardView = document.querySelector("#dashboard-view");
 const adminView = document.querySelector("#admin-view");
 const readerView = document.querySelector("#reader-view");
 const scrollView = document.querySelector("#scroll-view");
+const writerProfileView = document.querySelector("#writer-profile-view");
 const logoutWriterBtn = document.querySelector("#logout-writer");
 const exitOracleBtn = document.querySelector("#exit-oracle");
 const navReaderProfile = document.querySelector("#nav-reader-profile");
 const exitScrollBtn = document.querySelector("#exit-scroll");
 const oracleContentList = document.querySelector("#oracle-content-list");
 const stageCount = document.querySelector("#stage-count");
+const stageTitle = document.querySelector("#stage-title");
 const publicViews = document.querySelectorAll(".public-view");
 const writerPostsGrid = document.querySelector("#writer-posts-grid");
 const writerPostsLabel = document.querySelector("#writer-posts-label");
 const writerVisionsGrid = document.querySelector("#writer-visions-grid");
+const sidebarStatWorks = document.querySelector("#sidebar-stat-works");
+const sidebarStatVisions = document.querySelector("#sidebar-stat-visions");
+const sidebarStatLikes = document.querySelector("#sidebar-stat-likes");
+const writerProfileForm = document.querySelector("#writer-profile-form");
+const writerSecurityForm = document.querySelector("#writer-security-form");
+const profileDisplayName = document.querySelector("#profile-display-name");
+const profilePenName = document.querySelector("#profile-pen-name");
+const profileNameDisplayMode = document.querySelector("#profile-name-display-mode");
+const profileBio = document.querySelector("#profile-bio");
+const profilePublicAvatar = document.querySelector("#profile-public-avatar");
+const profilePublicBio = document.querySelector("#profile-public-bio");
+const profilePublicLevel = document.querySelector("#profile-public-level");
+const profileAvatarPicker = document.querySelector("#profile-avatar-picker");
+const profileAvatarPickerTrigger = document.querySelector("#profile-avatar-picker-trigger");
+const profileAvatarPreview = document.querySelector("#profile-avatar-preview");
+const profileNewPassword = document.querySelector("#profile-new-password");
+const sidebarAvatarPicker = document.querySelector("#sidebar-avatar-picker");
+const sidebarAvatarPreview = document.querySelector("#sidebar-avatar-preview");
+const sidebarAvatarButton = document.querySelector("#sidebar-avatar-button");
+const sidebarDisplayName = document.querySelector("#sidebar-display-name");
+const sidebarRole = document.querySelector("#sidebar-role");
+const inkwellSidebar = document.querySelector("#inkwell-sidebar-panel");
+const inkwellSidebarToggle = document.querySelector("#inkwell-sidebar-toggle");
+const oracleSidebar = document.querySelector("#oracle-sidebar-panel");
+const oracleSidebarToggle = document.querySelector("#oracle-sidebar-toggle");
+const oracleTabs = document.querySelectorAll(".oracle-menu .oracle-tab");
+const oracleLogoutBtn = document.querySelector("#oracle-logout");
+const sendResetLinkBtn = document.querySelector("#send-reset-link");
 const shrineScreenView = document.querySelector("#shrine-screen-view");
 const openScreenBtn = document.querySelector("#open-screen");
 const exitScreenBtn = document.querySelector("#exit-screen");
@@ -64,8 +94,12 @@ const visualSubmissionArea = document.querySelector("#visual-submission-area");
 const submitVisionBtn = document.querySelector("#submit-vision");
 const visualTitle = document.querySelector("#visual-title");
 const visualUrl = document.querySelector("#visual-url");
+const seriesNavigation = document.querySelector("#series-navigation");
+const prevChapterBtn = document.querySelector("#prev-chapter");
+const nextChapterBtn = document.querySelector("#next-chapter");
+const seriesIndex = document.querySelector("#series-index");
 
-// Inkwell editor elements.
+// J05. Inkwell editor elements.
 const editorView = document.querySelector("#editor-view");
 const createBtn = document.querySelector("#create-offering");
 const closeEditorBtn = document.querySelector("#close-editor");
@@ -96,6 +130,7 @@ let currentOpenPostTitle = "";
 let currentOpenPost = null;
 let publicOfferingsCache = null;
 let activeShrineFilter = "all";
+let selectedProfileAvatarDataUrl = "";
 
 const shrineFilters = {
   stories: {
@@ -249,6 +284,39 @@ const isWriterUser = (user) => getUserRole(user) === "writer";
 const getVoiceLabel = (profile = {}) => {
   if ((profile.role || "").toLowerCase() === "reader") return "The Listener";
   return profile.writer_level || "The Listener";
+};
+
+const levelThemeMap = {
+  "novice scribe": { slug: "novice", color: "#9b7d46", glyph: "✧", bg: "#f0e2c2" },
+  "ink keeper": { slug: "keeper", color: "#2d7a6f", glyph: "✒", bg: "#d8f1eb" },
+  "elder storyteller": { slug: "elder", color: "#6a4bb4", glyph: "✦", bg: "#e7dcff" },
+  "oracle voice": { slug: "oracle", color: "#a24b4b", glyph: "◈", bg: "#f7dcdc" },
+};
+
+const getLevelTheme = (level = "") => {
+  const normalized = String(level).trim().toLowerCase();
+  return (
+    levelThemeMap[normalized] || {
+      slug: "default",
+      color: "#8f6b2d",
+      glyph: "✦",
+      bg: "#f2e7cc",
+    }
+  );
+};
+
+const getLevelAvatarDataUri = (level = "") => {
+  const theme = getLevelTheme(level);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='${theme.bg}'/><text x='60' y='72' text-anchor='middle' font-size='40' fill='${theme.color}' font-family='Georgia,serif'>${theme.glyph}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
+const getProfileDisplayName = (profile = {}, fallback = "Unknown scribe") => {
+  const mode = profile.display_name_mode || "full_name";
+  if (mode === "anonymous") return "Anonymous Scribe";
+  if (mode === "username") return profile.username || profile.full_name || fallback;
+  if (mode === "pen_name") return profile.pen_name || profile.full_name || profile.username || fallback;
+  return profile.full_name || profile.username || profile.pen_name || fallback;
 };
 
 const allowedRichTags = new Set([
@@ -432,10 +500,22 @@ const getAuthorProfiles = async (posts) => {
 
   if (!authorIds.length) return new Map();
 
-  const { data: profiles = [], error } = await supabase
+  let { data: profiles = [], error } = await supabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, username, pen_name, display_name_mode, bio, avatar_url, writer_level, public_show_avatar, public_show_bio, public_show_level")
     .in("id", authorIds);
+
+  if (
+    error &&
+    ["username", "bio", "avatar_url", "pen_name", "display_name_mode", "public_show_avatar", "public_show_bio", "public_show_level"].some((column) =>
+      isMissingColumnError(error, column),
+    )
+  ) {
+    ({ data: profiles = [], error } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, writer_level")
+      .in("id", authorIds));
+  }
 
   if (error) {
     console.error("Error fetching public author profiles:", {
@@ -482,7 +562,7 @@ const getPublicOfferings = async () => {
   const profilesById = await getAuthorProfiles(posts);
   publicOfferingsCache = posts.map((post) => ({
     ...post,
-    authorName: profilesById.get(post.author_id)?.full_name || "Unknown scribe",
+    authorName: getProfileDisplayName(profilesById.get(post.author_id), "Unknown scribe"),
   }));
 
   return publicOfferingsCache;
@@ -512,7 +592,15 @@ const updateShrineFilterState = (filterName = "all") => {
   }
 };
 
-// Render published public offerings without the old placeholder cards.
+const openWriterProfileFromEvent = (event, writerId) => {
+  event?.preventDefault();
+  event?.stopPropagation();
+
+  if (!writerId) return;
+  showWriterProfile(writerId);
+};
+
+// J06. Public offering rendering.
 const renderFeaturedStories = async (filterName = activeShrineFilter) => {
   updateShrineFilterState(filterName);
   const offerings = getFilteredOfferings(await getPublicOfferings(), filterName);
@@ -535,7 +623,7 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
     const title = document.createElement("h3");
     const excerpt = document.createElement("p");
     const meta = document.createElement("div");
-    const author = document.createElement("span");
+    const author = document.createElement("button");
     const readTime = document.createElement("span");
 
     card.className = "story-card";
@@ -543,12 +631,17 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
     card.role = "button";
     category.className = "eyebrow";
     meta.className = "story-meta";
+    author.className = "author-link";
+    author.type = "button";
 
     category.textContent = getSeriesLabel(story);
     title.textContent = getDisplayTitle(story);
     excerpt.textContent = getStoryExcerpt(story);
     author.textContent = story.authorName || "Unknown scribe";
+    author.disabled = !story.author_id;
     readTime.textContent = `${calculateReadingTime(story.content || "")} min read`;
+    author.addEventListener("click", (event) => openWriterProfileFromEvent(event, story.author_id));
+    author.addEventListener("keydown", (event) => event.stopPropagation());
 
     card.addEventListener("click", () => openStory(story.id));
     card.addEventListener("keydown", (event) => {
@@ -572,31 +665,72 @@ const scrollToSection = (selector) => {
 
 const closeMobileNav = () => {
   primaryNav?.classList.remove("is-open");
+  inkwellSidebar?.classList.remove("is-open");
+  oracleSidebar?.classList.remove("is-open");
   mobileNavToggle?.classList.remove("is-open");
   mobileNavToggle?.setAttribute("aria-expanded", "false");
   mobileNavToggle?.setAttribute("aria-label", "Open navigation");
 };
 
 const toggleMobileNav = () => {
+  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  const inDashboardView = document.body.classList.contains("is-dashboard-view");
+  const inAdminView = document.body.classList.contains("is-admin-view");
+
+  if (isMobile && (inDashboardView || inAdminView)) {
+    primaryNav?.classList.remove("is-open");
+    const activePanel = inDashboardView ? inkwellSidebar : oracleSidebar;
+    const otherPanel = inDashboardView ? oracleSidebar : inkwellSidebar;
+    otherPanel?.classList.remove("is-open");
+    const isOpen = activePanel?.classList.toggle("is-open");
+    mobileNavToggle?.classList.toggle("is-open", Boolean(isOpen));
+    mobileNavToggle?.setAttribute("aria-expanded", String(Boolean(isOpen)));
+    mobileNavToggle?.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    return;
+  }
+
   const isOpen = primaryNav?.classList.toggle("is-open");
   mobileNavToggle?.classList.toggle("is-open", Boolean(isOpen));
   mobileNavToggle?.setAttribute("aria-expanded", String(Boolean(isOpen)));
   mobileNavToggle?.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
 };
 
-// Switch between public shrine pages, private dashboard, reader, screen, and admin.
+const setPanelState = (panel, toggle, isOpen, openLabel, closeLabel) => {
+  if (!panel || !toggle) return;
+  panel.classList.toggle("is-open", isOpen);
+  toggle.setAttribute("aria-expanded", String(isOpen));
+  toggle.textContent = isOpen ? closeLabel : openLabel;
+};
+
+const syncSidebarPanelsForViewport = () => {
+  const isMobile = window.matchMedia("(max-width: 720px)").matches;
+  setPanelState(inkwellSidebar, inkwellSidebarToggle, !isMobile, "Open Inkwell Menu", "Close Inkwell Menu");
+  setPanelState(oracleSidebar, oracleSidebarToggle, !isMobile, "Open Oracle Menu", "Close Oracle Menu");
+};
+
+// J07. View routing and page transitions.
 const showView = async (viewName, targetSelector = "#home") => {
   closeMobileNav();
+  if (window.matchMedia("(max-width: 720px)").matches) {
+    setPanelState(inkwellSidebar, inkwellSidebarToggle, false, "Open Inkwell Menu", "Close Inkwell Menu");
+    setPanelState(oracleSidebar, oracleSidebarToggle, false, "Open Oracle Menu", "Close Oracle Menu");
+  }
   const showingDashboard = viewName === "dashboard";
   const showingAdmin = viewName === "admin";
   const showingScreen = viewName === "screen";
   const showingScroll = viewName === "scroll";
+  const showingWriterProfile = viewName === "writer-profile";
 
-  publicViews.forEach((view) => view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen || showingScroll));
+  publicViews.forEach((view) =>
+    view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen || showingScroll || showingWriterProfile),
+  );
   dashboardView.classList.toggle("hidden", !showingDashboard);
   adminView.classList.toggle("hidden", !showingAdmin);
+  document.body.classList.toggle("is-dashboard-view", showingDashboard);
+  document.body.classList.toggle("is-admin-view", showingAdmin);
   shrineScreenView?.classList.toggle("hidden", !showingScreen);
   scrollView?.classList.toggle("hidden", !showingScroll);
+  writerProfileView?.classList.toggle("hidden", !showingWriterProfile);
   readerView?.classList.add("hidden");
   document.body.classList.remove("focus-mode");
   document.body.style.overflow = "auto";
@@ -648,10 +782,15 @@ const showView = async (viewName, targetSelector = "#home") => {
     return;
   }
 
+  if (showingWriterProfile) {
+    scrollToSection("#writer-profile-view");
+    return;
+  }
+
   scrollToSection(targetSelector);
 };
 
-// Open and close the auth modal.
+// J08. Auth modal controls.
 const openAuthModal = () => {
   authModal.classList.remove("hidden");
 };
@@ -660,7 +799,7 @@ const closeAuthModal = () => {
   authModal.classList.add("hidden");
 };
 
-// Keep auth copy and required fields in sync with the current mode.
+// J09. Auth mode rendering.
 const renderAuthMode = () => {
   nameField.classList.toggle("hidden", !isSignUpMode);
   accountTypeField?.classList.toggle("hidden", !isSignUpMode);
@@ -673,7 +812,7 @@ const renderAuthMode = () => {
     : 'New to the shrine? <span id="toggle-mode">Begin Journey</span>';
 };
 
-// Render the current writer's posts without injecting database text as HTML.
+// J10. Writer dashboard rendering.
 const renderWriterPosts = (posts) => {
   writerPostsGrid.innerHTML = "";
 
@@ -690,24 +829,187 @@ const renderWriterPosts = (posts) => {
     const status = document.createElement("span");
     const title = document.createElement("h3");
     const meta = document.createElement("p");
-    const button = document.createElement("button");
+    const actions = document.createElement("div");
+    const refineButton = document.createElement("button");
+    const publishButton = document.createElement("button");
+    const deleteButton = document.createElement("button");
 
     card.className = "offering-card";
     status.className = "offering-category";
     title.className = "offering-title";
-    button.className = "edit-btn";
-    button.type = "button";
+    actions.className = "offering-actions";
+    refineButton.className = "edit-btn";
+    publishButton.className = "edit-btn";
+    deleteButton.className = "delete-btn";
+    refineButton.type = "button";
+    publishButton.type = "button";
+    deleteButton.type = "button";
 
     status.textContent = post.status || "draft";
     title.textContent = getDisplayTitle(post);
     meta.className = "offering-meta";
     meta.textContent = getStoryFormat(post) === "series" ? getSeriesLabel(post) : "One story";
-    button.textContent = "Refine Ink";
-    button.addEventListener("click", () => openEditor(post));
+    refineButton.textContent = "Refine Ink";
+    publishButton.textContent = "Publish";
+    deleteButton.textContent = "Delete";
+    publishButton.hidden = post.status === "published" || post.status === "featured";
+    refineButton.addEventListener("click", () => openEditor(post));
+    publishButton.addEventListener("click", () => updateWriterPostStatus(post.id, "published"));
+    deleteButton.addEventListener("click", () => deleteWriterPost(post.id, getDisplayTitle(post)));
 
-    card.append(status, title, meta, button);
+    actions.append(refineButton, publishButton, deleteButton);
+    card.append(status, title, meta, actions);
     writerPostsGrid.appendChild(card);
   });
+};
+
+const updateWriterPostStatus = async (postId, status) => {
+  const user = await authActions.getCurrentUser();
+  if (!user || !postId) return;
+
+  const { error } = await supabase
+    .from("posts")
+    .update({ status })
+    .eq("id", postId)
+    .eq("author_id", user.id);
+
+  if (error) {
+    alert("This offering could not be updated: " + error.message);
+    return;
+  }
+
+  publicOfferingsCache = null;
+  await loadWriterDashboard();
+  await renderFeaturedStories();
+};
+
+const deleteWriterPost = async (postId, title) => {
+  const user = await authActions.getCurrentUser();
+  if (!user || !postId) return;
+
+  const confirmed = confirm(`Delete "${title}"? This cannot be undone.`);
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("posts")
+    .delete()
+    .eq("id", postId)
+    .eq("author_id", user.id);
+
+  if (error) {
+    alert("This offering could not be deleted: " + error.message);
+    return;
+  }
+
+  publicOfferingsCache = null;
+  await loadWriterDashboard();
+  await renderFeaturedStories();
+};
+
+const updateWriterProfile = async (user, payload) => {
+  let nextPayload = { ...payload };
+
+  while (Object.keys(nextPayload).length) {
+    const { error } = await supabase
+      .from("profiles")
+      .update(nextPayload)
+      .eq("id", user.id);
+
+    if (!error) return null;
+
+    const missingColumn = Object.keys(nextPayload).find((column) => isMissingColumnError(error, column));
+    if (!missingColumn) return error;
+    delete nextPayload[missingColumn];
+  }
+
+  return null;
+};
+
+const saveWriterProfile = async (event) => {
+  event.preventDefault();
+
+  const user = await authActions.getCurrentUser();
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  const displayName = profileDisplayName?.value.trim() || "";
+  const penName = profilePenName?.value.trim() || "";
+  const displayNameMode = profileNameDisplayMode?.value || "full_name";
+  const bio = profileBio?.value.trim() || "";
+  const avatarUrl = selectedProfileAvatarDataUrl || user.profile?.avatar_url || "";
+
+  if (!displayName) {
+    alert("Your public shrine needs an ink name.");
+    return;
+  }
+
+  if (avatarUrl && !isSafeImageUrl(avatarUrl)) {
+    alert("Please use a valid image URL for your display picture.");
+    return;
+  }
+
+  const error = await updateWriterProfile(user, {
+    full_name: displayName,
+    pen_name: penName,
+    display_name_mode: displayNameMode,
+    bio,
+    avatar_url: avatarUrl,
+    public_show_avatar: Boolean(profilePublicAvatar?.checked ?? true),
+    public_show_bio: Boolean(profilePublicBio?.checked ?? true),
+    public_show_level: Boolean(profilePublicLevel?.checked ?? true),
+  });
+
+  if (error) {
+    alert("Your public shrine could not be saved: " + error.message);
+    return;
+  }
+
+  publicOfferingsCache = null;
+  await authActions.refreshCurrentUser();
+  await loadWriterDashboard();
+  await renderFeaturedStories();
+  alert("Your public shrine has been updated.");
+  const shrineModal = document.querySelector("#my-shrine-modal");
+  closeModal(shrineModal);
+};
+
+const changeWriterPassword = async (event) => {
+  event.preventDefault();
+
+  const password = profileNewPassword?.value || "";
+  if (password.length < 6) {
+    alert("Please use at least 6 characters for your new password.");
+    return;
+  }
+
+  try {
+    await authActions.updatePassword(password);
+    profileNewPassword.value = "";
+    alert("Your password has been changed.");
+    const settingsModal = document.querySelector("#settings-modal");
+    closeModal(settingsModal);
+  } catch (error) {
+    alert("Your password could not be changed: " + error.message);
+  }
+};
+
+const sendPasswordResetLink = async () => {
+  const user = await authActions.getCurrentUser();
+  const email = user?.email || authEmail?.value.trim();
+
+  if (!email) {
+    alert("No email address is available for this account.");
+    return;
+  }
+
+  try {
+    await authActions.sendPasswordReset(email);
+    alert("A password reset link has been sent to your email.");
+  } catch (error) {
+    alert("The reset link could not be sent: " + error.message);
+  }
 };
 
 const editVision = (vision) => {
@@ -715,7 +1017,8 @@ const editVision = (vision) => {
   if (visualTitle) visualTitle.value = vision.title || "";
   if (visualUrl) visualUrl.value = vision.url || "";
   if (submitVisionBtn) submitVisionBtn.textContent = "Refine Vision";
-  visualSubmissionArea?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const visionModal = document.querySelector("#add-vision-modal");
+  openModal(visionModal);
 };
 
 const renderWriterVisions = (visions) => {
@@ -783,7 +1086,7 @@ const getWriterVisions = async (authorId) => {
   return legacyVisions;
 };
 
-// Load profile and post data for the logged-in writer.
+// J11. Writer dashboard data loading.
 async function loadWriterDashboard() {
   const user = await authActions.getCurrentUser();
 
@@ -797,9 +1100,27 @@ async function loadWriterDashboard() {
     return;
   }
 
-  document.querySelector("#writer-name").textContent =
-    user.profile?.full_name || user.user_metadata?.full_name || user.email;
-  document.querySelector("#writer-level").textContent = user.profile?.writer_level || "Novice Scribe";
+  const writerName = getProfileDisplayName(user.profile, user.user_metadata?.full_name || user.email);
+  const writerLevel = user.profile?.writer_level || "Novice Scribe";
+  const theme = getLevelTheme(writerLevel);
+  document.querySelector("#writer-name").textContent = writerName;
+  document.querySelector("#writer-level").textContent = writerLevel;
+  document.querySelector("#writer-level").dataset.level = theme.slug;
+  if (sidebarDisplayName) sidebarDisplayName.textContent = writerName;
+  if (sidebarRole) {
+    sidebarRole.textContent = writerLevel;
+    sidebarRole.dataset.level = theme.slug;
+  }
+  if (sidebarAvatarPreview) sidebarAvatarPreview.src = user.profile?.avatar_url || getLevelAvatarDataUri(writerLevel);
+  if (profileDisplayName) profileDisplayName.value = user.profile?.full_name || writerName;
+  if (profilePenName) profilePenName.value = user.profile?.pen_name || "";
+  if (profileNameDisplayMode) profileNameDisplayMode.value = user.profile?.display_name_mode || "full_name";
+  if (profileBio) profileBio.value = user.profile?.bio || "";
+  if (profileAvatarPreview) profileAvatarPreview.src = user.profile?.avatar_url || getLevelAvatarDataUri(writerLevel);
+  if (profilePublicAvatar) profilePublicAvatar.checked = user.profile?.public_show_avatar !== false;
+  if (profilePublicBio) profilePublicBio.checked = user.profile?.public_show_bio !== false;
+  if (profilePublicLevel) profilePublicLevel.checked = user.profile?.public_show_level !== false;
+  selectedProfileAvatarDataUrl = "";
 
   const { data: posts = [], error } = await supabase
     .from("posts")
@@ -822,9 +1143,15 @@ async function loadWriterDashboard() {
     (total, post) => total + (post.likes_count || post.likes || 0),
     0,
   );
+  // Update sidebar stats
+  if (sidebarStatWorks) sidebarStatWorks.textContent = posts.length;
+  if (sidebarStatVisions) sidebarStatVisions.textContent = visions.length;
+  if (sidebarStatLikes) {
+    sidebarStatLikes.textContent = posts.reduce((total, post) => total + (post.likes_count || post.likes || 0), 0);
+  }
 }
 
-// Show protected navigation once Supabase confirms a session.
+// J12. Session-aware navigation.
 async function initSession() {
   const user = await authActions.getCurrentUser();
 
@@ -847,9 +1174,10 @@ async function initSession() {
   return user;
 }
 
-// Load the Oracle dashboard with offerings awaiting admin review.
+// J13. Oracle dashboard loading.
 async function loadOracleSubmissions() {
   const { data: posts, error } = await oracleActions.getPendingSubmissions();
+  if (stageTitle) stageTitle.textContent = "Pending Offerings";
 
   oracleContentList.innerHTML = "";
 
@@ -903,6 +1231,106 @@ async function loadOracleSubmissions() {
   });
 }
 
+async function loadOracleFeatured() {
+  const { data: posts = [], error } = await oracleActions.getFeaturedWorks();
+  oracleContentList.innerHTML = "";
+  if (stageTitle) stageTitle.textContent = "Featured Stills";
+
+  if (error) {
+    stageCount.textContent = "Featured works could not be loaded.";
+    alert(error.message);
+    return;
+  }
+
+  stageCount.textContent = posts.length
+    ? `${posts.length} featured offering${posts.length === 1 ? "" : "s"} in the shrine.`
+    : "No featured offerings yet.";
+
+  if (!posts.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No featured offerings yet.";
+    oracleContentList.appendChild(emptyState);
+    return;
+  }
+
+  posts.forEach((post) => {
+    const item = document.createElement("article");
+    const itemInfo = document.createElement("div");
+    const title = document.createElement("h4");
+    const meta = document.createElement("span");
+    const actions = document.createElement("div");
+    const unfeatureButton = document.createElement("button");
+
+    item.className = "oracle-item";
+    itemInfo.className = "item-info";
+    actions.className = "admin-actions";
+    unfeatureButton.className = "feature-btn";
+    unfeatureButton.type = "button";
+    unfeatureButton.textContent = "Remove Feature";
+    title.textContent = post.title || "Untitled offering";
+    meta.textContent = `By ${post.profiles?.full_name || "Unknown scribe"} - Type: ${post.type || "story"}`;
+
+    unfeatureButton.addEventListener("click", async () => {
+      const { error: updateError } = await oracleActions.toggleFeatured(post.id, false);
+      if (updateError) {
+        alert(updateError.message);
+        return;
+      }
+      await loadOracleFeatured();
+    });
+
+    itemInfo.append(title, meta);
+    actions.append(unfeatureButton);
+    item.append(itemInfo, actions);
+    oracleContentList.appendChild(item);
+  });
+}
+
+async function loadOracleRegistry() {
+  const { data: profiles = [], error } = await oracleActions.getRegistryProfiles();
+  oracleContentList.innerHTML = "";
+  if (stageTitle) stageTitle.textContent = "The Registry";
+
+  if (error) {
+    stageCount.textContent = "Registry could not be loaded.";
+    alert(error.message);
+    return;
+  }
+
+  const writers = profiles.filter((profile) => (profile.role || "").toLowerCase() === "writer");
+  const readers = profiles.filter((profile) => (profile.role || "").toLowerCase() !== "writer");
+  stageCount.textContent = `${profiles.length} registered members - ${writers.length} writer${writers.length === 1 ? "" : "s"}, ${readers.length} reader${readers.length === 1 ? "" : "s"}.`;
+
+  if (!profiles.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No registered members found yet.";
+    oracleContentList.appendChild(emptyState);
+    return;
+  }
+
+  profiles.forEach((profile) => {
+    const item = document.createElement("article");
+    const itemInfo = document.createElement("div");
+    const name = document.createElement("h4");
+    const meta = document.createElement("span");
+
+    const role = (profile.role || "reader").toLowerCase() === "writer" ? "Writer" : "Reader";
+    const level = profile.writer_level || (role === "Writer" ? "Novice Scribe" : "The Listener");
+    const handle = profile.username ? `@${profile.username}` : profile.id?.slice(0, 8) || "unknown";
+
+    item.className = "oracle-item";
+    itemInfo.className = "item-info";
+    name.textContent = profile.full_name || handle;
+    meta.textContent = `${role} - ${level} - ${handle}`;
+
+    itemInfo.append(name, meta);
+    item.append(itemInfo);
+    oracleContentList.appendChild(item);
+  });
+}
+
 const updateOracleStatus = async (postId, status) => {
   const { error } = await oracleActions.updateStatus(postId, status);
 
@@ -914,7 +1342,7 @@ const updateOracleStatus = async (postId, status) => {
   await loadOracleSubmissions();
 };
 
-// Reset editor fields before a new offering or fill them for an existing post.
+// J14. Editor state preparation.
 const resetEditor = (post = null) => {
   currentEditingPostId = post?.id || null;
   currentEditingPostWasSeries = getStoryFormat(post) === "series";
@@ -928,7 +1356,7 @@ const resetEditor = (post = null) => {
   postContent.innerHTML = normalizeStoredContent(post?.content || "");
 };
 
-// Open and close the full-screen inkwell editor.
+// J15. Editor view controls.
 const openEditor = async (post = null) => {
   const user = await initSession();
 
@@ -972,7 +1400,7 @@ const getOrCreateSeries = async ({ authorId, title }) => {
   return { series: createdSeries, error: createError };
 };
 
-// Save an offering as either a draft or a published post.
+// J16. Offering save and publish flow.
 const saveOffering = async (status) => {
   const user = await authActions.getCurrentUser();
 
@@ -1088,8 +1516,40 @@ const saveOffering = async (status) => {
   await showView("dashboard");
 };
 
-// Hero entrance animation.
-enterBtn.addEventListener("click", () => {
+const handleSidebarAvatarChange = (event) => {
+  const file = event.target?.files?.[0];
+  if (!file || !file.type.startsWith("image/")) return;
+
+  const previewUrl = URL.createObjectURL(file);
+  sidebarAvatarPreview?.setAttribute("src", previewUrl);
+};
+
+const handleProfileAvatarChange = async (event) => {
+  const file = event.target?.files?.[0];
+  if (!file || !file.type.startsWith("image/")) return;
+
+  try {
+    const dataUrl = await readFileAsDataUrl(file);
+    if (typeof dataUrl !== "string") return;
+    selectedProfileAvatarDataUrl = dataUrl;
+    profileAvatarPreview?.setAttribute("src", dataUrl);
+  } catch {
+    alert("The selected image could not be loaded.");
+  }
+};
+
+sidebarAvatarButton?.addEventListener("click", () => {
+  sidebarAvatarPicker?.click();
+});
+
+sidebarAvatarPicker?.addEventListener("change", handleSidebarAvatarChange);
+profileAvatarPickerTrigger?.addEventListener("click", () => {
+  profileAvatarPicker?.click();
+});
+profileAvatarPicker?.addEventListener("change", handleProfileAvatarChange);
+
+// J17. Hero entrance animation.
+enterBtn?.addEventListener("click", () => {
   hero.classList.add("lifted");
 
   setTimeout(() => {
@@ -1099,19 +1559,19 @@ enterBtn.addEventListener("click", () => {
   }, 600);
 });
 
-// Auth modal event listeners.
-navAuthTrigger.addEventListener("click", openAuthModal);
-closeAuthBtn.addEventListener("click", closeAuthModal);
-authModal.addEventListener("click", (event) => {
+// J18. Auth modal event listeners.
+navAuthTrigger?.addEventListener("click", openAuthModal);
+closeAuthBtn?.addEventListener("click", closeAuthModal);
+authModal?.addEventListener("click", (event) => {
   if (event.target === authModal) closeAuthModal();
 });
 
-authToggle.addEventListener("click", () => {
+authToggle?.addEventListener("click", () => {
   isSignUpMode = !isSignUpMode;
   renderAuthMode();
 });
 
-authForm.addEventListener("submit", async (event) => {
+authForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const email = authEmail.value.trim();
@@ -1158,13 +1618,13 @@ authForm.addEventListener("submit", async (event) => {
   }
 });
 
-// Dashboard and home navigation.
-navDashboard.addEventListener("click", (event) => {
+// J19. Dashboard and home navigation.
+navDashboard?.addEventListener("click", (event) => {
   event.preventDefault();
   showView("dashboard");
 });
 
-navAdmin.addEventListener("click", (event) => {
+navAdmin?.addEventListener("click", (event) => {
   event.preventDefault();
   showView("admin");
 });
@@ -1196,7 +1656,7 @@ shrineFilterLinks.forEach((link) => {
   });
 });
 
-exitOracleBtn.addEventListener("click", (event) => {
+exitOracleBtn?.addEventListener("click", (event) => {
   event.preventDefault();
   showView("dashboard");
 });
@@ -1206,7 +1666,7 @@ exitScrollBtn?.addEventListener("click", (event) => {
   showView("home", "#home");
 });
 
-logoutWriterBtn.addEventListener("click", async () => {
+logoutWriterBtn?.addEventListener("click", async () => {
   setAppLoading(true, "Closing your inkwell...");
 
   try {
@@ -1220,12 +1680,149 @@ logoutWriterBtn.addEventListener("click", async () => {
   }
 });
 
-goHome.addEventListener("click", (event) => {
+// Modal management functions
+const modals = {
+  shrine: document.querySelector("#my-shrine-modal"),
+  settings: document.querySelector("#settings-modal"),
+  vision: document.querySelector("#add-vision-modal"),
+};
+
+const openModal = (modal) => {
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+};
+
+const closeModal = (modal) => {
+  if (!modal) return;
+  modal.classList.add("hidden");
+  document.body.style.overflow = "";
+};
+
+// Close modals on background click
+Object.values(modals).forEach((modal) => {
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal(modal);
+    }
+  });
+});
+
+// Close buttons for modals
+document.querySelector("#close-shrine-modal")?.addEventListener("click", () => closeModal(modals.shrine));
+document.querySelector("#close-shrine-form")?.addEventListener("click", () => closeModal(modals.shrine));
+document.querySelector("#close-settings-modal")?.addEventListener("click", () => closeModal(modals.settings));
+document.querySelector("#close-settings-form")?.addEventListener("click", () => closeModal(modals.settings));
+document.querySelector("#close-vision-modal")?.addEventListener("click", () => closeModal(modals.vision));
+document.querySelector("#close-vision-form")?.addEventListener("click", () => closeModal(modals.vision));
+
+// Sidebar event listeners
+const sidebarLogoutBtn = document.querySelector("#sidebar-logout");
+const sidebarCreateBtn = document.querySelector("#sidebar-create-offering");
+const sidebarAddVisionBtn = document.querySelector("#sidebar-add-vision");
+const sidebarLinks = document.querySelectorAll(".sidebar-link[data-section]");
+const sidebarRouteLinks = document.querySelectorAll(".sidebar-link[data-go-view]");
+const oracleRouteLinks = document.querySelectorAll(".oracle-hub-nav [data-go-view]");
+
+sidebarLogoutBtn?.addEventListener("click", async () => {
+  setAppLoading(true, "Closing your inkwell...");
+
+  try {
+    await authActions.signOut();
+    await initSession();
+    await showView("home", "#home");
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    setAppLoading(false);
+  }
+});
+
+sidebarCreateBtn?.addEventListener("click", openEditor);
+sidebarAddVisionBtn?.addEventListener("click", () => openModal(modals.vision));
+
+sidebarLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    const section = link.dataset.section;
+    sidebarLinks.forEach((l) => l.classList.remove("active"));
+    link.classList.add("active");
+    
+    // Open modals based on section
+    if (section === "profile") {
+      openModal(modals.shrine);
+    } else if (section === "settings") {
+      openModal(modals.settings);
+    }
+  });
+});
+
+const handleSideRoute = async (link) => {
+  const viewName = link.dataset.goView || "home";
+  const target = link.dataset.goTarget || "#home";
+  await showView(viewName, target);
+};
+
+sidebarRouteLinks.forEach((link) => {
+  link.addEventListener("click", async () => {
+    await handleSideRoute(link);
+  });
+});
+
+oracleRouteLinks.forEach((link) => {
+  link.addEventListener("click", async () => {
+    await handleSideRoute(link);
+  });
+});
+
+oracleTabs.forEach((tab) => {
+  tab.addEventListener("click", async () => {
+    oracleTabs.forEach((button) => button.classList.remove("active"));
+    tab.classList.add("active");
+
+    const view = tab.dataset.tab;
+    if (view === "registry") {
+      await loadOracleRegistry();
+      return;
+    }
+
+    if (view === "featured") {
+      await loadOracleFeatured();
+      return;
+    }
+
+    if (stageTitle) stageTitle.textContent = "Pending Offerings";
+    await loadOracleSubmissions();
+  });
+});
+
+oracleLogoutBtn?.addEventListener("click", async () => {
+  setAppLoading(true, "Closing the chamber...");
+  try {
+    await authActions.signOut();
+    await initSession();
+    await showView("home", "#home");
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    setAppLoading(false);
+  }
+});
+
+goHome?.addEventListener("click", (event) => {
   event.preventDefault();
   showView("home", "#home");
 });
 
 mobileNavToggle?.addEventListener("click", toggleMobileNav);
+inkwellSidebarToggle?.addEventListener("click", () => {
+  const nextState = !inkwellSidebar?.classList.contains("is-open");
+  setPanelState(inkwellSidebar, inkwellSidebarToggle, nextState, "Open Inkwell Menu", "Close Inkwell Menu");
+});
+oracleSidebarToggle?.addEventListener("click", () => {
+  const nextState = !oracleSidebar?.classList.contains("is-open");
+  setPanelState(oracleSidebar, oracleSidebarToggle, nextState, "Open Oracle Menu", "Close Oracle Menu");
+});
+window.addEventListener("resize", syncSidebarPanelsForViewport);
 
 openScreenBtn?.addEventListener("click", () => {
   showView("screen");
@@ -1235,16 +1832,19 @@ exitScreenBtn?.addEventListener("click", () => {
   showView("home", "#screen");
 });
 
-// Editor controls.
-writeButton.addEventListener("click", openEditor);
-createBtn.addEventListener("click", openEditor);
-closeEditorBtn.addEventListener("click", closeEditor);
-saveDraftBtn.addEventListener("click", () => saveOffering("draft"));
-publishBtn.addEventListener("click", () => saveOffering("published"));
+// J20. Editor controls.
+writeButton?.addEventListener("click", openEditor);
+createBtn?.addEventListener("click", openEditor);
+closeEditorBtn?.addEventListener("click", closeEditor);
+saveDraftBtn?.addEventListener("click", () => saveOffering("draft"));
+publishBtn?.addEventListener("click", () => saveOffering("published"));
+writerProfileForm?.addEventListener("submit", saveWriterProfile);
+writerSecurityForm?.addEventListener("submit", changeWriterPassword);
+sendResetLinkBtn?.addEventListener("click", sendPasswordResetLink);
 storyFormatInputs.forEach((input) => {
   input.addEventListener("change", () => setActiveStoryFormat(getActiveStoryFormat()));
 });
-postType.addEventListener("change", () => {
+postType?.addEventListener("change", () => {
   if (postType.value === "series") {
     setActiveStoryFormat("series");
   }
@@ -1255,11 +1855,11 @@ toolbarButtons.forEach((button) => {
   });
 });
 
-textColor.addEventListener("input", () => {
+textColor?.addEventListener("input", () => {
   runEditorCommand("foreColor", textColor.value);
 });
 
-addLinkBtn.addEventListener("click", () => {
+addLinkBtn?.addEventListener("click", () => {
   const url = prompt("Paste the link URL");
   if (!url || !isSafeUrl(url)) return;
 
@@ -1272,14 +1872,14 @@ addLinkBtn.addEventListener("click", () => {
   insertRichHtml(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
 });
 
-addImageBtn.addEventListener("click", () => {
+addImageBtn?.addEventListener("click", () => {
   const imageUrl = prompt("Paste an image URL");
   if (!imageUrl || !isSafeImageUrl(imageUrl)) return;
 
   insertRichHtml(`<figure><img src="${escapeHtml(imageUrl)}" alt=""></figure><p><br></p>`);
 });
 
-addCoverBtn.addEventListener("click", async () => {
+addCoverBtn?.addEventListener("click", async () => {
   const imageFile = await pickImageFile();
   if (!imageFile) return;
 
@@ -1305,7 +1905,7 @@ addCoverBtn.addEventListener("click", async () => {
   postContent.focus();
 });
 
-addYoutubeBtn.addEventListener("click", () => {
+addYoutubeBtn?.addEventListener("click", () => {
   const youtubeUrl = prompt("Paste a YouTube link");
   const embedUrl = youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : "";
   if (!embedUrl) return;
@@ -1333,11 +1933,24 @@ const getPostWithAuthorProfile = async (postId) => {
     return { post: { ...post, profiles: null }, error: null };
   }
 
-  const { data: profile, error: profileError } = await supabase
+  let { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, username, pen_name, display_name_mode, bio, avatar_url, writer_level, public_show_avatar, public_show_bio, public_show_level")
     .eq("id", post.author_id)
     .maybeSingle();
+
+  if (
+    profileError &&
+    ["username", "bio", "avatar_url", "pen_name", "display_name_mode", "public_show_avatar", "public_show_bio", "public_show_level"].some((column) =>
+      isMissingColumnError(profileError, column),
+    )
+  ) {
+    ({ data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, writer_level")
+      .eq("id", post.author_id)
+      .maybeSingle());
+  }
 
   if (profileError) {
     console.error("Error fetching reader author profile:", {
@@ -1477,7 +2090,48 @@ function calculateReadingTime(content = "") {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-// Open a published offering in the full-page reader.
+const updateSeriesNavigation = async (post) => {
+  if (!seriesNavigation || !prevChapterBtn || !nextChapterBtn || !seriesIndex) return;
+
+  if (!post?.series_id) {
+    seriesNavigation.classList.add("hidden");
+    prevChapterBtn.onclick = null;
+    nextChapterBtn.onclick = null;
+    return;
+  }
+
+  const { data: episodes = [], error } = await supabase
+    .from("posts")
+    .select("id, series_order")
+    .eq("series_id", post.series_id)
+    .in("status", ["published", "featured"])
+    .order("series_order", { ascending: true });
+
+  if (error || !episodes.length) {
+    console.error("Error loading series navigation:", error);
+    seriesNavigation.classList.add("hidden");
+    return;
+  }
+
+  const currentIndex = episodes.findIndex((episode) => episode.id === post.id);
+
+  if (currentIndex === -1) {
+    seriesNavigation.classList.add("hidden");
+    return;
+  }
+
+  const previousEpisode = episodes[currentIndex - 1];
+  const nextEpisode = episodes[currentIndex + 1];
+
+  prevChapterBtn.classList.toggle("hidden", !previousEpisode);
+  nextChapterBtn.classList.toggle("hidden", !nextEpisode);
+  prevChapterBtn.onclick = previousEpisode ? () => openStory(previousEpisode.id) : null;
+  nextChapterBtn.onclick = nextEpisode ? () => openStory(nextEpisode.id) : null;
+  seriesIndex.textContent = `Part ${currentIndex + 1} of ${episodes.length}`;
+  seriesNavigation.classList.remove("hidden");
+};
+
+// J21. Reader story loading and series navigation.
 async function openStory(postId) {
   const readerView = document.querySelector("#reader-view");
   if (!readerView) return;
@@ -1488,6 +2142,7 @@ async function openStory(postId) {
   adminView.classList.add("hidden");
   shrineScreenView?.classList.add("hidden");
   scrollView?.classList.add("hidden");
+  writerProfileView?.classList.add("hidden");
   readerView.classList.remove("hidden");
   window.scrollTo(0, 0);
 
@@ -1505,10 +2160,23 @@ async function openStory(postId) {
   currentOpenPostTitle = getDisplayTitle(post);
 
   document.querySelector("#reader-title").textContent = currentOpenPostTitle;
-  document.querySelector("#reader-author").textContent = `By ${post.profiles?.full_name || "Unknown scribe"}`;
+  const readerAuthor = document.querySelector("#reader-author");
+  readerAuthor.textContent = `By ${getProfileDisplayName(post.profiles, "Unknown scribe")}`;
+  readerAuthor.classList.toggle("author-link", Boolean(post.author_id));
+  readerAuthor.tabIndex = post.author_id ? 0 : -1;
+  readerAuthor.setAttribute("role", post.author_id ? "button" : "text");
+  readerAuthor.onclick = post.author_id ? (event) => openWriterProfileFromEvent(event, post.author_id) : null;
+  readerAuthor.onkeydown = post.author_id
+    ? (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          openWriterProfileFromEvent(event, post.author_id);
+        }
+      }
+    : null;
   document.querySelector("#reader-category").textContent = getSeriesLabel(post);
   document.querySelector("#reader-body").innerHTML = normalizeStoredContent(content);
   document.querySelector("#reading-time").textContent = `${calculateReadingTime(content)} min read`;
+  await updateSeriesNavigation(post);
   updateShareMetadata(post);
   updateShareLinks();
   await updateBookmarkButton(postId);
@@ -1518,7 +2186,7 @@ async function openStory(postId) {
 
 window.openStory = openStory;
 
-// Focus Mode Toggle
+// J22. Focus mode toggle.
 document.querySelector("#toggle-focus")?.addEventListener("click", () => {
   document.body.classList.toggle("focus-mode");
 });
@@ -1527,7 +2195,7 @@ document.querySelector("#add-bookmark")?.addEventListener("click", toggleBookmar
 document.querySelector("#share-native")?.addEventListener("click", shareCurrentStory);
 document.querySelector("#copy-story-link")?.addEventListener("click", copyStoryLink);
 
-// Exit Reader
+// J23. Reader exit controls.
 document.querySelector("#exit-reader")?.addEventListener("click", () => {
   document.querySelector("#reader-view")?.classList.add("hidden");
   publicViews.forEach((view) => view.classList.remove("hidden"));
@@ -1559,7 +2227,7 @@ const getMediaType = (url) => {
   return "cinematic_still";
 };
 
-// Screen videos play in-app for YouTube and link out for social platforms.
+// J24. Shrine Screen playback helpers.
 const closeVideoModal = () => {
   videoModal?.classList.add("hidden");
   if (videoPlayerContainer) videoPlayerContainer.innerHTML = "";
@@ -1587,7 +2255,7 @@ const openVideoModal = (url, type) => {
   videoModal.classList.remove("hidden");
 };
 
-// Build cards with DOM APIs so media titles and URLs never become raw HTML.
+// J25. Shrine Screen card rendering.
 const renderMediaCard = (item) => {
   const card = document.createElement("article");
   const thumbnail = document.createElement("div");
@@ -1690,7 +2358,7 @@ async function renderScreenPreviews() {
   previews.forEach((item, index) => screenPreviewGrid.appendChild(renderScreenPreviewCard(item, index)));
 }
 
-// Load cinematic offerings from Supabase when the Shrine Screen opens.
+// J26. Shrine Screen data loading.
 async function loadShrineScreen() {
   if (!videoGrid) return;
 
@@ -1732,7 +2400,7 @@ dashboardTabs.forEach((button) => {
     const showingVisuals = button.dataset.tab === "visual";
     writerPostsGrid.classList.toggle("hidden", showingVisuals);
     writerPostsLabel?.classList.toggle("hidden", showingVisuals);
-    visualSubmissionArea?.classList.toggle("hidden", !showingVisuals);
+    document.querySelector("#visual-visions-section")?.classList.toggle("hidden", !showingVisuals);
   });
 });
 
@@ -1803,6 +2471,8 @@ submitVisionBtn?.addEventListener("click", async () => {
   visualTitle.value = "";
   visualUrl.value = "";
   submitVisionBtn.textContent = "Offer to Screen";
+  const visionModal = document.querySelector("#add-vision-modal");
+  closeModal(visionModal);
   await loadWriterDashboard();
   await loadShrineScreen();
   await renderScreenPreviews();
@@ -1813,11 +2483,12 @@ videoModal?.addEventListener("click", (event) => {
   if (event.target === videoModal) closeVideoModal();
 });
 
-// Initial page setup.
+// J27. Initial page setup.
 document.body.style.overflowY = "hidden";
 const bootstrapApp = async () => {
   setAppLoading(true, "Opening the shrine...");
   renderAuthMode();
+  syncSidebarPanelsForViewport();
 
   const initialStoryId = new URLSearchParams(window.location.search).get("story");
 
@@ -1942,7 +2613,7 @@ document.querySelector("#toggle-comments")?.addEventListener("click", () => {
   document.querySelector("#echoes-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
-// 2. Load the Scroll Content
+// J28. Listener Scroll data loading.
 async function loadTheScroll() {
   const userObject = await authActions.getCurrentUser();
   if (!userObject) return;
@@ -2014,7 +2685,7 @@ async function loadTheScroll() {
   }
 }
 
-// 3. The Ascension Ritual Logic
+// J29. Reader-to-writer ascension flow.
 document.querySelector("#begin-ascension")?.addEventListener("click", async () => {
     const userObject = await authActions.getCurrentUser();
     if (!userObject) {
@@ -2043,3 +2714,94 @@ document.querySelector("#begin-ascension")?.addEventListener("click", async () =
         }
     }
 });
+
+
+// J30. Writer public profile view.
+async function showWriterProfile(writerId) {
+    await showView("writer-profile");
+
+    let { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", writerId)
+        .maybeSingle();
+
+    if (profileError || !profile) {
+        alert(profileError?.message || "This writer profile could not be opened.");
+        await showView("home", "#community");
+        return;
+    }
+
+    const avatar = document.querySelector("#scribe-avatar");
+    const level = profile.writer_level || getVoiceLabel(profile);
+    const theme = getLevelTheme(level);
+    const showBio = profile.public_show_bio !== false;
+    const showLevel = profile.public_show_level !== false;
+    const showAvatar = profile.public_show_avatar !== false;
+
+    document.querySelector("#scribe-name").textContent = getProfileDisplayName(profile, "A quiet scribe");
+    document.querySelector("#scribe-bio").textContent = showBio ? profile.bio || "A quiet scribe in the circle." : "This scribe keeps their story private.";
+    document.querySelector("#scribe-level").textContent = showLevel ? level : "Circle Member";
+    document.querySelector("#scribe-level").dataset.level = theme.slug;
+
+    if (avatar) {
+        const customAvatar = showAvatar && profile.avatar_url && isSafeImageUrl(profile.avatar_url);
+        avatar.textContent = customAvatar ? "" : theme.glyph;
+        avatar.style.color = theme.color;
+        avatar.style.backgroundColor = theme.bg;
+        avatar.style.backgroundImage = customAvatar ? `url("${profile.avatar_url}")` : "";
+    }
+
+    const { data: posts = [], error: postError } = await supabase
+        .from("posts")
+        .select("*, series(id, title, cover_url)")
+        .eq("author_id", writerId)
+        .in("status", ["published", "featured"])
+        .order("created_at", { ascending: false });
+
+    if (postError) {
+        alert("This writer's offerings could not be loaded: " + postError.message);
+        return;
+    }
+
+    const grid = document.querySelector("#scribe-offerings-grid");
+    grid.innerHTML = "";
+    document.querySelector("#scribe-works-count").textContent = posts.length;
+
+    if (!posts.length) {
+        const emptyState = document.createElement("p");
+        emptyState.className = "empty-state";
+        emptyState.textContent = "This scribe has no public offerings yet.";
+        grid.appendChild(emptyState);
+        return;
+    }
+
+    posts.forEach((post) => {
+        const card = document.createElement("article");
+        const title = document.createElement("h3");
+        const meta = document.createElement("p");
+        const excerpt = document.createElement("p");
+
+        card.className = "story-card";
+        card.tabIndex = 0;
+        card.role = "button";
+        title.textContent = getDisplayTitle(post);
+        meta.className = "eyebrow";
+        meta.textContent = getSeriesLabel(post);
+        excerpt.textContent = getStoryExcerpt(post);
+
+        card.addEventListener("click", () => openStory(post.id));
+        card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openStory(post.id);
+            }
+        });
+
+        card.append(meta, title, excerpt);
+        grid.appendChild(card);
+    });
+}
+
+window.showWriterProfile = showWriterProfile;
+

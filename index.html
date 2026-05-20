@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Page metadata and app shell assets -->
+    <!-- H01. Page metadata and app shell assets -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="àlọ́ is a digital storytelling shrine for African imagination, poetry, fiction, comics, and cinematic AI stories.">
@@ -25,7 +25,7 @@
     </div>
 
     <div id="app">
-        <!-- First-screen shrine entrance -->
+        <!-- H02. First-screen shrine entrance -->
         <section id="hero" class="hero">
             <div class="hero-inner">
                 <h1 class="alo-wordmark">àlọ́</h1>
@@ -39,7 +39,7 @@
         </section>
 
         <main id="shrine-content" class="shrine-content hidden">
-            <!-- Main navigation and auth-aware dashboard links -->
+            <!-- H03. Main navigation and auth-aware dashboard links -->
             <nav class="top-nav">
                 <a id="go-home" class="brand-link" href="#home" aria-label="àlọ́ home">
                     <span class="brand-word">àlọ́</span>
@@ -64,7 +64,7 @@
                 </div>
             </nav>
 
-            <!-- Public home introduction -->
+            <!-- H04. Public home introduction -->
             <section id="home" class="intro-section public-view">
                 <div>
                     <p class="eyebrow">Digital fire circle</p>
@@ -73,7 +73,7 @@
                 <p>àlọ́ is a calm literary space for African-rooted stories, poems, essays, comics, and cinematic AI tales.</p>
             </section>
 
-            <!-- Featured public stories rendered from main.js -->
+            <!-- H05. Featured public stories rendered from main.js -->
             <section id="explore" class="section-block public-view">
                 <div class="section-heading">
                     <p class="eyebrow">Featured Stories</p>
@@ -82,7 +82,7 @@
                 <div id="story-grid" class="story-grid" aria-live="polite"></div>
             </section>
 
-            <!-- Public media promotion band -->
+            <!-- H06. Public media promotion band -->
             <section id="screen" class="media-band public-view">
                 <div class="media-copy">
                     <p class="eyebrow">Shrine Screen</p>
@@ -92,54 +92,81 @@
                 <div id="screen-preview-grid" class="screen-preview-grid" aria-live="polite"></div>
             </section>
 
-            <!-- Writer dashboard shown after authentication -->
+            <!-- H07. Writer dashboard shown after authentication -->
             <section id="dashboard-view" class="dashboard-view hidden">
-                <header class="dashboard-header">
-                    <div class="writer-info">
-                        <h2 id="writer-name" class="font-display">Scribe Name</h2>
-                        <span id="writer-level" class="badge">Novice Scribe</span>
-                    </div>
-                    <div class="dashboard-actions">
-                        <button id="logout-writer" class="text-btn" type="button">Log Out</button>
-                        <button id="create-offering" class="cta-gold" type="button">+ New Offering</button>
-                    </div>
-                </header>
-
-                <div class="dashboard-stats">
-                    <div class="stat-card"><span>Works</span><strong id="stat-works">0</strong></div>
-                    <div class="stat-card visual-stat"><span>Visual Visions</span><strong id="stat-visions">0</strong></div>
-                    <div class="stat-card"><span>Recognition</span><strong id="stat-likes">0</strong></div>
-                </div>
-
-                <div class="dashboard-tabs" aria-label="Dashboard views">
-                    <button class="tab-btn active" type="button" data-tab="written">Written Ink</button>
-                    <button class="tab-btn" type="button" data-tab="visual">Visual Visions</button>
-                </div>
-
-                <div id="visual-submission-area" class="hidden">
-                    <div class="offering-card visual-form">
-                        <h3 class="font-display">Prepare a Visual Offering</h3>
-                        <p class="auth-subtitle">Link a cinematic vision from YouTube or TikTok</p>
-
-                        <div class="input-group">
-                            <input type="text" id="visual-title" placeholder="Title of the Vision" required>
+                <div class="dashboard-container">
+                    <button id="inkwell-sidebar-toggle" class="panel-mobile-toggle" type="button" aria-expanded="false" aria-controls="inkwell-sidebar-panel">Open Inkwell Menu</button>
+                    <!-- Sidebar navigation and quick access -->
+                    <aside id="inkwell-sidebar-panel" class="inkwell-sidebar">
+                        <div class="sidebar-profile">
+                            <button id="sidebar-avatar-button" class="avatar-picker" type="button" aria-label="Choose profile picture">
+                                <img id="sidebar-avatar-preview" class="sidebar-avatar" src="/alo-logo.png" alt="Profile picture">
+                            </button>
+                            <div class="sidebar-identity">
+                                <p class="sidebar-name" id="sidebar-display-name">Scribe Name</p>
+                                <p class="sidebar-role" id="sidebar-role">Novice Scribe</p>
+                            </div>
+                            <input type="file" id="sidebar-avatar-picker" accept="image/*" hidden>
                         </div>
-                        <div class="input-group">
-                            <input type="url" id="visual-url" placeholder="Paste YouTube/TikTok URL here" required>
+                        <nav class="sidebar-nav">
+                            <p class="sidebar-label">Dashboard</p>
+                            <button class="sidebar-link active" data-section="overview" type="button"><span class="sidebar-link-icon" aria-hidden="true">✦</span><span>Overview</span></button>
+                            <button class="sidebar-link" data-section="profile" type="button"><span class="sidebar-link-icon" aria-hidden="true">◌</span><span>My Shrine</span></button>
+                            <button class="sidebar-link" data-section="settings" type="button"><span class="sidebar-link-icon" aria-hidden="true">◈</span><span>Settings</span></button>
+                            <button class="sidebar-link" data-section="analytics" type="button"><span class="sidebar-link-icon" aria-hidden="true">◎</span><span>Analytics</span></button>
+                        </nav>
+
+                        <nav class="sidebar-hub-nav">
+                            <p class="sidebar-label">Shrine Navigation</p>
+                            <button class="sidebar-link" type="button" data-go-view="home" data-go-target="#explore"><span class="sidebar-link-icon" aria-hidden="true">&#9673;</span><span>Explore</span></button>
+                            <button class="sidebar-link" type="button" data-go-view="home" data-go-target="#screen"><span class="sidebar-link-icon" aria-hidden="true">&#9686;</span><span>Shrine Screen</span></button>
+                            <button class="sidebar-link" type="button" data-go-view="scroll"><span class="sidebar-link-icon" aria-hidden="true">&#9702;</span><span>My Scroll</span></button>
+                            <button class="sidebar-link" type="button" data-go-view="admin"><span class="sidebar-link-icon" aria-hidden="true">&#9672;</span><span>Oracle's Chamber</span></button>
+                        </nav>
+
+                        <div class="sidebar-actions">
+                            <p class="sidebar-label">Quick Actions</p>
+                            <button id="sidebar-create-offering" class="sidebar-cta" type="button"><span class="sidebar-link-icon" aria-hidden="true">✍</span><span>New Offering</span></button>
+                            <button id="sidebar-add-vision" class="sidebar-cta secondary" type="button"><span class="sidebar-link-icon" aria-hidden="true">◐</span><span>Add Vision</span></button>
                         </div>
 
-                        <button id="submit-vision" class="cta-gold" type="button">Offer to Screen</button>
+                        <div class="sidebar-footer">
+                            <button id="sidebar-logout" class="text-btn" type="button">Log Out</button>
+                        </div>
+                    </aside>
+
+                    <!-- Main dashboard content -->
+                    <div class="dashboard-main">
+                        <header class="dashboard-header">
+                            <div class="writer-info">
+                                <h2 id="writer-name" class="font-display">Scribe Name</h2>
+                                <span id="writer-level" class="badge">Novice Scribe</span>
+                            </div>
+                        </header>
+
+                        <div class="dashboard-stats">
+                            <div class="stat-card"><span>Works</span><strong id="stat-works">0</strong></div>
+                            <div class="stat-card visual-stat"><span>Visual Visions</span><strong id="stat-visions">0</strong></div>
+                            <div class="stat-card"><span>Recognition</span><strong id="stat-likes">0</strong></div>
+                        </div>
+
+                        <div class="dashboard-tabs" aria-label="Dashboard views">
+                            <button class="tab-btn active" type="button" data-tab="written">Written Ink</button>
+                            <button class="tab-btn" type="button" data-tab="visual">Visual Visions</button>
+                        </div>
+
+                        <h3 id="writer-posts-label" class="sub-label">Your Current Ink</h3>
+                        <div id="writer-posts-grid" class="story-grid" aria-live="polite"></div>
+
+                        <div id="visual-visions-section" class="hidden">
+                            <h3 id="writer-visions-label" class="sub-label">Your Visual Visions</h3>
+                            <div id="writer-visions-grid" class="story-grid" aria-live="polite"></div>
+                        </div>
                     </div>
-
-                    <h3 id="writer-visions-label" class="sub-label">Your Visual Visions</h3>
-                    <div id="writer-visions-grid" class="story-grid" aria-live="polite"></div>
                 </div>
-
-                <h3 id="writer-posts-label" class="sub-label">Your Current Ink</h3>
-                <div id="writer-posts-grid" class="story-grid" aria-live="polite"></div>
             </section>
 
-            <!-- Public content collections -->
+            <!-- H08. Public content collections -->
             <section class="section-block public-view">
                 <div class="section-heading">
                     <p class="eyebrow">Collections</p>
@@ -154,7 +181,7 @@
                 </div>
             </section>
 
-            <!-- Public community section -->
+            <!-- H09. Public community section -->
             <section id="community" class="split-section public-view">
                 <div class="writer-spotlight">
                     <p class="eyebrow">Writer Spotlight</p>
@@ -167,14 +194,14 @@
                 </blockquote>
             </section>
 
-            <!-- Public writing call-to-action -->
+            <!-- H10. Public writing call-to-action -->
             <section id="write" class="submit-band public-view">
                 <p class="eyebrow">Write to àlọ́</p>
                 <h2>Drafts become offerings, then published works.</h2>
                 <button class="text-button dark" type="button">Begin writing</button>
             </section>
 
-            <!-- Site footer -->
+            <!-- H11. Site footer -->
             <footer class="site-footer public-view">
                 <a class="footer-brand" href="#home" aria-label="àlọ́ home">àlọ́</a>
                 <nav class="social-links" aria-label="Social links">
@@ -208,7 +235,7 @@
                 <p>àlọ́ © 2026. All rights reserved. Oracle Tek GS.</p>
             </footer>
 
-            <!-- Authentication modal -->
+            <!-- H12. Authentication modal -->
             <div id="auth-modal" class="modal-overlay hidden">
                 <div class="auth-card">
                     <button id="close-auth" class="close-btn" type="button" aria-label="Close auth modal">&times;</button>
@@ -252,16 +279,23 @@
                 </div>
             </div>
 
-            <!-- Admin dashboard for reviewing published offerings -->
+            <!-- H13. Admin dashboard for reviewing published offerings -->
             <section id="admin-view" class="admin-view hidden">
                 <div class="oracle-container">
-                    <aside class="oracle-sidebar">
+                    <button id="oracle-sidebar-toggle" class="panel-mobile-toggle oracle-toggle" type="button" aria-expanded="false" aria-controls="oracle-sidebar-panel">Open Oracle Menu</button>
+                    <aside id="oracle-sidebar-panel" class="oracle-sidebar">
                         <h2 class="font-display">The Oracle</h2>
                         <nav class="oracle-menu">
                             <button class="oracle-tab active" type="button" data-tab="submissions">Pending Offerings</button>
                             <button class="oracle-tab" type="button" data-tab="registry">The Registry</button>
                             <button class="oracle-tab" type="button" data-tab="featured">Featured Stills</button>
                         </nav>
+                        <nav class="oracle-hub-nav">
+                            <button class="oracle-tab" type="button" data-go-view="home" data-go-target="#explore">Explore Shrine</button>
+                            <button class="oracle-tab" type="button" data-go-view="dashboard">Writer Inkwell</button>
+                            <button class="oracle-tab" type="button" data-go-view="scroll">Reader Scroll</button>
+                        </nav>
+                        <button id="oracle-logout" class="text-btn" type="button">Log Out</button>
                         <button id="exit-oracle" class="text-btn" type="button">&larr; Leave Chamber</button>
                     </aside>
 
@@ -276,10 +310,120 @@
                 </div>
             </section>
 
-            <!-- THE SACRED READER -->
+            <!-- Inkwell Dashboard Modals -->
+            <!-- H13a. My Shrine (Profile) Modal -->
+            <div id="my-shrine-modal" class="modal-overlay hidden">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2 class="font-display">My Shrine</h2>
+                        <button id="close-shrine-modal" class="close-btn" type="button" aria-label="Close modal">&times;</button>
+                    </div>
+
+                    <form id="writer-profile-form" class="modal-form">
+                        <div class="form-section">
+                            <p class="auth-subtitle">What readers see when they open your profile</p>
+                            <label class="editor-field-label" for="profile-display-name">
+                                Ink name
+                                <input type="text" id="profile-display-name" class="editor-meta-input" placeholder="Your pen name">
+                            </label>
+                            <label class="editor-field-label" for="profile-pen-name">
+                                Pen name (optional)
+                                <input type="text" id="profile-pen-name" class="editor-meta-input" placeholder="Shadow name for published works">
+                            </label>
+                            <label class="editor-field-label" for="profile-name-display-mode">
+                                Name shown on your works
+                                <select id="profile-name-display-mode" class="editor-meta-input">
+                                    <option value="full_name">Ink name</option>
+                                    <option value="username">Username</option>
+                                    <option value="pen_name">Pen name</option>
+                                    <option value="anonymous">Anonymous Scribe</option>
+                                </select>
+                            </label>
+                            <label class="editor-field-label" for="profile-bio">
+                                Bio
+                                <textarea id="profile-bio" class="editor-meta-input profile-textarea" placeholder="Tell readers what kind of stories you carry."></textarea>
+                            </label>
+                            <fieldset class="profile-privacy-grid">
+                                <legend>Public profile visibility</legend>
+                                <label><input type="checkbox" id="profile-public-avatar" checked> Show avatar publicly</label>
+                                <label><input type="checkbox" id="profile-public-bio" checked> Show bio publicly</label>
+                                <label><input type="checkbox" id="profile-public-level" checked> Show writer level publicly</label>
+                            </fieldset>
+                            <label class="editor-field-label" for="profile-avatar-picker">
+                                Display picture
+                                <button id="profile-avatar-picker-trigger" class="text-btn" type="button">Choose from device</button>
+                                <input type="file" id="profile-avatar-picker" accept="image/*" hidden>
+                                <img id="profile-avatar-preview" class="profile-avatar-preview" src="/alo-logo.png" alt="Profile image preview">
+                            </label>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="text-btn" id="close-shrine-form">Cancel</button>
+                            <button id="save-profile" class="cta-gold" type="submit">Save Public Shrine</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- H13b. Settings (Security) Modal -->
+            <div id="settings-modal" class="modal-overlay hidden">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2 class="font-display">Settings</h2>
+                        <button id="close-settings-modal" class="close-btn" type="button" aria-label="Close modal">&times;</button>
+                    </div>
+
+                    <form id="writer-security-form" class="modal-form">
+                        <div class="form-section">
+                            <p class="auth-subtitle">Change password or send yourself a reset link</p>
+                            <label class="editor-field-label" for="profile-new-password">
+                                New password
+                                <input type="password" id="profile-new-password" class="editor-meta-input" placeholder="New password">
+                            </label>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="text-btn" id="close-settings-form">Cancel</button>
+                            <button id="change-password" class="text-btn" type="submit">Change Password</button>
+                            <button id="send-reset-link" class="text-btn" type="button">Send Reset Link</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- H13c. Add Vision Modal -->
+            <div id="add-vision-modal" class="modal-overlay hidden">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2 class="font-display">Add a Vision</h2>
+                        <button id="close-vision-modal" class="close-btn" type="button" aria-label="Close modal">&times;</button>
+                    </div>
+
+                    <form id="vision-form" class="modal-form">
+                        <div class="form-section">
+                            <p class="auth-subtitle">Link a cinematic vision from YouTube or TikTok</p>
+                            <label class="editor-field-label" for="visual-title">
+                                Title
+                                <input type="text" id="visual-title" class="editor-meta-input" placeholder="Title of the Vision" required>
+                            </label>
+                            <label class="editor-field-label" for="visual-url">
+                                URL
+                                <input type="url" id="visual-url" class="editor-meta-input" placeholder="Paste YouTube/TikTok URL here" required>
+                            </label>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="text-btn" id="close-vision-form">Cancel</button>
+                            <button id="submit-vision" class="cta-gold" type="submit">Offer to Screen</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- H14. Sacred reader view -->
 <section id="reader-view" class="hidden">
     <div class="reader-container">
-        <!-- Reader Navigation -->
+        <!-- H14a. Reader navigation -->
         <header class="reader-nav">
             <button id="exit-reader" class="text-btn" type="button">← Leave Story</button>
             <div class="reader-tools">
@@ -290,7 +434,7 @@
 
         </header>
 
-        <!-- The Content -->
+        <!-- H14b. Reader article content -->
         <article class="reader-article">
             <header class="article-header">
                 <span id="reader-category" class="offering-category">Folklore</span>
@@ -301,10 +445,20 @@
             </header>
 
             <div id="reader-body" class="reader-body">
-                <!-- Story text goes here -->
+                <!-- H14b-1. Story text is injected here -->
             </div>
 
-            <!-- The "Offering" Footer -->
+            <!-- H14c. Series previous/next navigation -->
+            <nav class="series-nav hidden" id="series-navigation">
+                <div class="divider">&bull;</div>
+                <div class="series-controls">
+                    <button id="prev-chapter" class="text-btn" type="button">&larr; Previous Chapter</button>
+                    <span id="series-index" class="meta-label">Part 1 of 5</span>
+                    <button id="next-chapter" class="text-btn" type="button">Next Chapter &rarr;</button>
+                </div>
+            </nav>
+
+            <!-- H14d. Reader offering footer -->
             <footer class="article-footer">
                 <div class="divider">✦</div>
                 <p>You have finished this offering.</p>
@@ -320,12 +474,12 @@
             </footer>
         </article>
 
-        <!-- THE ECHOES (Comments Section) -->
+        <!-- H14e. Echoes comments section -->
         <section id="echoes-section" class="echoes-container">
             <div class="divider">✦ ✦ ✦</div>
             <h3 class="font-display">Echoes of the Circle</h3>
 
-            <!-- Speaking Area (Only for logged-in users) -->
+            <!-- H14f. Echo composer for logged-in users -->
             <div id="echo-input-area" class="echo-input-box hidden auth-only">
                 <textarea id="new-echo-content" placeholder="Add your voice to the circle..."></textarea>
                 <button id="submit-echo" class="text-btn" type="button">Speak →</button>
@@ -335,15 +489,15 @@
                 You must <button id="open-auth-from-comments" class="inline-text-btn" type="button">Join the Circle</button> to speak.
             </p>
 
-            <!-- The List of Echoes -->
+            <!-- H14g. Echo list -->
             <div id="echoes-list" class="echoes-list" aria-live="polite">
-                <!-- Echoes will be injected here -->
+                <!-- H14g-1. Echoes are injected here -->
             </div>
         </section>
     </div>
 </section>
 
-<!-- THE SHRINE SCREEN -->
+<!-- H15. Shrine Screen view -->
 <section id="shrine-screen-view" class="hidden">
     <div class="screen-container">
         <header class="screen-header">
@@ -356,12 +510,12 @@
         </header>
 
         <div id="video-grid" class="video-grid" aria-live="polite">
-            <!-- Video Cards will be injected here -->
+            <!-- H15a. Video cards are injected here -->
         </div>
     </div>
 </section>
 
-            <!-- Listener profile view -->
+            <!-- H16. Listener profile view -->
             <section id="scroll-view" class="hidden">
                 <div class="scroll-container">
                     <header class="scroll-header">
@@ -385,7 +539,7 @@
                     <section class="scroll-section">
                         <h2 class="sub-label">Your Sacred Collection</h2>
                         <div id="bookmarks-grid" class="story-grid">
-                            <!-- Bookmarked stories will appear here -->
+                            <!-- H16a. Bookmarked stories appear here -->
                         </div>
                     </section>
 
@@ -402,17 +556,55 @@
                 </div>
             </section>
 
-<!-- VIDEO MODAL (The Lightbox) -->
+<!-- H17. Video modal lightbox -->
 <div id="video-modal" class="modal-overlay hidden">
     <div class="modal-content">
         <button id="close-video" class="close-btn" type="button" aria-label="Close video">&times;</button>
         <div id="video-player-container">
-            <!-- Embed will be injected here -->
+            <!-- H17a. Video embed is injected here -->
         </div>
     </div>
 </div>
 
-            <!-- Inkwell editor for drafts and published offerings -->
+<!-- H18. Writer public shrine -->
+<section id="writer-profile-view" class="hidden">
+    <div class="writer-shrine-container">
+        <!-- H18a. Scribe identity header -->
+        <header class="scribe-header">
+            <div id="scribe-avatar" class="scribe-avatar-placeholder">✦</div>
+            <h1 id="scribe-name" class="font-display">Name of Scribe</h1>
+            <span id="scribe-level" class="badge">Elder Storyteller</span>
+            <p id="scribe-bio" class="scribe-bio">The bio of the storyteller goes here...</p>
+            
+            <div class="scribe-stats">
+                <span><strong id="scribe-works-count">0</strong> Offerings</span>
+                <span><strong id="scribe-followers-count">0</strong> Witnesses</span>
+            </div>
+            
+            <button id="follow-scribe" class="cta-enter">Witness their Journey</button>
+        </header>
+
+        <!-- H18b. Scribe offering gallery -->
+        <section class="scribe-gallery">
+            <h2 class="section-label">Collection of Offerings</h2>
+            <div id="scribe-offerings-grid" class="story-grid">
+                <!-- H18b-1. This scribe's stories only -->
+            </div>
+        </section>
+    </div>
+</section>
+
+<!-- Removed orphan series navigation placeholder. -->
+<template id="orphan-series-navigation">
+    <div class="divider">✦</div>
+    <div class="series-controls">
+        <button id="prev-chapter" class="text-btn">← Previous Chapter</button>
+        <span id="series-index" class="meta-label">Part 1 of 5</span>
+        <button id="next-chapter" class="text-btn">Next Chapter →</button>
+    </div>
+</template>
+
+            <!-- H19. Inkwell editor for drafts and published offerings -->
             <section id="editor-view" class="editor-view hidden">
                 <div class="editor-container">
                     <header class="editor-nav">
@@ -509,3 +701,5 @@
     <script type="module" src="./src/main.js"></script>
 </body>
 </html>
+
+
