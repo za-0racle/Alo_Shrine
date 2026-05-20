@@ -380,6 +380,21 @@ h2 {
   background: rgba(255, 251, 240, 0.56);
 }
 
+.story-card-cover {
+  margin: -24px -24px 0;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: rgba(30, 27, 46, 0.08);
+}
+
+.story-card-cover-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .story-card[role="button"] {
   cursor: pointer;
 }

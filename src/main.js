@@ -212,6 +212,23 @@ const getFirstImageFromContent = (content = "") => {
   return image?.src || "";
 };
 
+const getReaderFriendlyContent = (content = "") => {
+  const template = document.createElement("template");
+  template.innerHTML = normalizeStoredContent(content);
+
+  template.content.querySelectorAll(".cover-figure").forEach((node) => node.remove());
+  template.content.querySelectorAll("img.cover-image").forEach((image) => {
+    const figure = image.closest("figure");
+    if (figure) {
+      figure.remove();
+      return;
+    }
+    image.remove();
+  });
+
+  return template.innerHTML.trim();
+};
+
 const getPostCoverImage = (post = currentOpenPost) =>
   post?.series?.cover_url || getFirstImageFromContent(post?.content || "") || getAbsoluteAssetUrl("/alo-banner.png");
 
@@ -623,6 +640,9 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
 
   offerings.forEach((story) => {
     const card = document.createElement("article");
+    const coverUrl = getStoryFormat(story) === "series"
+      ? story?.series?.cover_url || getFirstImageFromContent(story?.content || "")
+      : "";
     const header = document.createElement("div");
     const category = document.createElement("p");
     const title = document.createElement("h3");
@@ -655,6 +675,18 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
         openStory(story.id);
       }
     });
+
+    if (coverUrl) {
+      const coverFigure = document.createElement("figure");
+      const coverImage = document.createElement("img");
+      coverFigure.className = "story-card-cover";
+      coverImage.className = "story-card-cover-image";
+      coverImage.src = coverUrl;
+      coverImage.alt = `${story?.series?.title || getDisplayTitle(story)} cover art`;
+      coverImage.loading = "lazy";
+      coverFigure.appendChild(coverImage);
+      card.appendChild(coverFigure);
+    }
 
     header.append(category, title);
     meta.append(author, readTime);
@@ -2265,7 +2297,7 @@ async function openStory(postId) {
       }
     : null;
   document.querySelector("#reader-category").textContent = getSeriesLabel(post);
-  document.querySelector("#reader-body").innerHTML = normalizeStoredContent(content);
+  document.querySelector("#reader-body").innerHTML = getReaderFriendlyContent(content);
   document.querySelector("#reading-time").textContent = `${calculateReadingTime(content)} min read`;
   await updateSeriesNavigation(post);
   updateShareMetadata(post);
