@@ -188,9 +188,9 @@
                     <h2>Inkwalker</h2>
                     <p>A profile shrine for writers, their works, badges, and readers who gather around their voice.</p>
                 </div>
-                <blockquote>
-                    "A story is a lantern. Hold it well, and it remembers the road."
-                    <cite>Quote of the Day</cite>
+                <blockquote class="sacred-quote">
+                    <p id="daily-quote-text">"A story is a lantern. Hold it well, and it remembers the road."</p>
+                    <cite id="daily-quote-author">Quote of the Day</cite>
                 </blockquote>
             </section>
 
@@ -294,8 +294,8 @@
                             <button class="oracle-tab" type="button" data-go-view="home" data-go-target="#explore">Explore Shrine</button>
                             <button class="oracle-tab" type="button" data-go-view="dashboard">Writer Inkwell</button>
                             <button class="oracle-tab" type="button" data-go-view="scroll">Reader Scroll</button>
+                            <button id="open-wisdom-modal" class="oracle-tab" type="button">Add Wisdom</button>
                         </nav>
-                        <button id="oracle-logout" class="text-btn" type="button">Log Out</button>
                         <button id="exit-oracle" class="text-btn" type="button">&larr; Leave Chamber</button>
                     </aside>
 
@@ -415,6 +415,34 @@
                         <div class="modal-footer">
                             <button type="button" class="text-btn" id="close-vision-form">Cancel</button>
                             <button id="submit-vision" class="cta-gold" type="submit">Offer to Screen</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="add-wisdom-modal" class="modal-overlay hidden">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2 class="font-display">Add Wisdom</h2>
+                        <button id="close-wisdom-modal" class="close-btn" type="button" aria-label="Close wisdom modal">&times;</button>
+                    </div>
+
+                    <form id="wisdom-form" class="modal-form">
+                        <div class="form-section">
+                            <p class="auth-subtitle">Offer a new quote to the shrine.</p>
+                            <label class="editor-field-label" for="wisdom-text">
+                                Quote
+                                <textarea id="wisdom-text" class="editor-meta-input wisdom-textarea" placeholder="Write the wisdom quote here..." required></textarea>
+                            </label>
+                            <label class="editor-field-label" for="wisdom-author">
+                                Author
+                                <input type="text" id="wisdom-author" class="editor-meta-input" placeholder="Elder Storyteller" required>
+                            </label>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="text-btn" id="close-wisdom-form">Cancel</button>
+                            <button id="submit-wisdom" class="cta-gold" type="submit">Offer Wisdom</button>
                         </div>
                     </form>
                 </div>

@@ -94,6 +94,11 @@ const visualSubmissionArea = document.querySelector("#visual-submission-area");
 const submitVisionBtn = document.querySelector("#submit-vision");
 const visualTitle = document.querySelector("#visual-title");
 const visualUrl = document.querySelector("#visual-url");
+const openWisdomModalBtn = document.querySelector("#open-wisdom-modal");
+const wisdomForm = document.querySelector("#wisdom-form");
+const wisdomText = document.querySelector("#wisdom-text");
+const wisdomAuthor = document.querySelector("#wisdom-author");
+const submitWisdomBtn = document.querySelector("#submit-wisdom");
 const seriesNavigation = document.querySelector("#series-navigation");
 const prevChapterBtn = document.querySelector("#prev-chapter");
 const nextChapterBtn = document.querySelector("#next-chapter");
@@ -1571,6 +1576,7 @@ profileAvatarPicker?.addEventListener("change", handleProfileAvatarChange);
 enterBtn?.addEventListener("click", () => {
   if (!hero || !content) return;
   hero.classList.add("lifted");
+  loadQuoteOfTheDay();
   let revealed = false;
   const revealShrine = () => {
     if (revealed) return;
@@ -1621,6 +1627,7 @@ authForm?.addEventListener("submit", async (event) => {
       closeAuthModal();
       const user = await initSession();
       await showView(isWriterUser(user) ? "dashboard" : "scroll");
+      await loadQuoteOfTheDay();
       return;
     }
 
@@ -1635,6 +1642,7 @@ authForm?.addEventListener("submit", async (event) => {
     } else {
       await showView("scroll");
     }
+    await loadQuoteOfTheDay();
   } catch (error) {
     alert(error.message);
   } finally {
@@ -1710,6 +1718,7 @@ const modals = {
   shrine: document.querySelector("#my-shrine-modal"),
   settings: document.querySelector("#settings-modal"),
   vision: document.querySelector("#add-vision-modal"),
+  wisdom: document.querySelector("#add-wisdom-modal"),
 };
 
 const openModal = (modal) => {
@@ -1740,6 +1749,8 @@ document.querySelector("#close-settings-modal")?.addEventListener("click", () =>
 document.querySelector("#close-settings-form")?.addEventListener("click", () => closeModal(modals.settings));
 document.querySelector("#close-vision-modal")?.addEventListener("click", () => closeModal(modals.vision));
 document.querySelector("#close-vision-form")?.addEventListener("click", () => closeModal(modals.vision));
+document.querySelector("#close-wisdom-modal")?.addEventListener("click", () => closeModal(modals.wisdom));
+document.querySelector("#close-wisdom-form")?.addEventListener("click", () => closeModal(modals.wisdom));
 
 // Sidebar event listeners
 const sidebarLogoutBtn = document.querySelector("#sidebar-logout");
@@ -1830,6 +1841,49 @@ oracleLogoutBtn?.addEventListener("click", async () => {
     alert(error.message);
   } finally {
     setAppLoading(false);
+  }
+});
+
+openWisdomModalBtn?.addEventListener("click", () => openModal(modals.wisdom));
+
+wisdomForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const quoteText = wisdomText?.value.trim();
+  const quoteAuthor = wisdomAuthor?.value.trim();
+  if (!quoteText || !quoteAuthor) {
+    alert("Please provide both quote text and author.");
+    return;
+  }
+
+  if (submitWisdomBtn) {
+    submitWisdomBtn.disabled = true;
+    submitWisdomBtn.textContent = "Offering...";
+  }
+
+  try {
+    const { error } = await supabase.from("quotes").insert([
+      {
+        text: quoteText,
+        author: quoteAuthor,
+      },
+    ]);
+
+    if (error) {
+      throw error;
+    }
+
+    closeModal(modals.wisdom);
+    wisdomForm.reset();
+    await loadQuoteOfTheDay();
+    alert("Wisdom added to the shrine.");
+  } catch (error) {
+    alert("The wisdom could not be added: " + error.message);
+  } finally {
+    if (submitWisdomBtn) {
+      submitWisdomBtn.disabled = false;
+      submitWisdomBtn.textContent = "Offer Wisdom";
+    }
   }
 });
 
@@ -2844,3 +2898,30 @@ async function showWriterProfile(writerId) {
 
 window.showWriterProfile = showWriterProfile;
 
+async function loadQuoteOfTheDay() {
+    const quoteElement = document.querySelector('#daily-quote-text');
+    const authorElement = document.querySelector('#daily-quote-author');
+    if (!quoteElement || !authorElement) return;
+
+    // 1. Fetch all quotes from the shrine
+    const { data: quotes, error } = await supabase
+        .from('quotes')
+        .select('text, author');
+
+    if (error || !quotes.length) return;
+
+    // 2. Random pick so each refresh/entry can show a different wisdom.
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    const todayQuote = quotes[randomIndex];
+
+    // 3. Apply to UI with a soft fade
+    quoteElement.style.opacity = 0;
+    setTimeout(() => {
+        quoteElement.textContent = `"${todayQuote.text}"`;
+        authorElement.textContent = `— ${todayQuote.author}`;
+        quoteElement.style.opacity = 1;
+    }, 500);
+}
+
+// Call this when the Homepage loads
+loadQuoteOfTheDay();
