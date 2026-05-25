@@ -199,7 +199,10 @@ const getSeriesLabel = (post) => {
 const getDisplayTitle = (post) => post.title || "Untitled offering";
 
 const getStoryShareUrl = (postId = currentOpenPostId) => {
-  return new URL(`/share/${postId}.html`, window.location.origin).toString();
+  const url = new URL(window.location.href);
+  url.searchParams.set("story", postId);
+  url.hash = "reader";
+  return url.toString();
 };
 
 const getAbsoluteAssetUrl = (path) => new URL(path, window.location.origin).toString();
