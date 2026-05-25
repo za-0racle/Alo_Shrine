@@ -52,8 +52,8 @@
                 </button>
                 <div id="primary-nav" class="nav-links">
                     <a href="#explore" id="nav-explore">Explore</a>
-                    <a href="#stories" class="visitor-nav">Stories</a>
-                    <a href="#poems" class="visitor-nav">Poems</a>
+                    <a href="./stories.html" class="visitor-nav">Stories</a>
+                    <a href="./poems.html" class="visitor-nav">Poems</a>
                     <a href="#screen">Shrine Screen</a>
                     <a href="#write" class="visitor-nav">Write</a>
                     <a href="#community" class="visitor-nav">Community</a>
@@ -73,16 +73,32 @@
                 <p>àlọ́ is a calm literary space for African-rooted stories, poems, essays, comics, and cinematic AI tales.</p>
             </section>
 
-            <!-- H05. Featured public stories rendered from main.js -->
+            <!-- H05. Public content collections -->
+            <section class="section-block public-view">
+                <div class="section-heading">
+                    <p class="eyebrow">Collections</p>
+                    <h2>Choose a shrine</h2>
+                </div>
+                <div class="category-grid">
+                    <a id="stories" href="./stories.html">Stories</a>
+                    <a id="poems" href="./poems.html">Poems</a>
+                    <a href="./essays.html">Essays</a>
+                    <a href="./comics.html">Comics</a>
+                    <a href="./ai-stories.html">AI Stories</a>
+                </div>
+            </section>
+
+            <!-- H06. Featured public stories rendered from main.js -->
             <section id="explore" class="section-block public-view">
                 <div class="section-heading">
-                    <p class="eyebrow">Featured Stories</p>
-                    <h2>New offerings at the shrine</h2>
+                    <p class="eyebrow">Recent Offerings</p>
+                    <h2>Well of stories</h2>
                 </div>
+                <div id="series-feature-card" class="series-feature-card hidden" role="button" tabindex="0" aria-label="Open ongoing series"></div>
                 <div id="story-grid" class="story-grid" aria-live="polite"></div>
             </section>
 
-            <!-- H06. Public media promotion band -->
+            <!-- H07. Public media promotion band -->
             <section id="screen" class="media-band public-view">
                 <div class="media-copy">
                     <p class="eyebrow">Shrine Screen</p>
@@ -166,22 +182,7 @@
                 </div>
             </section>
 
-            <!-- H08. Public content collections -->
-            <section class="section-block public-view">
-                <div class="section-heading">
-                    <p class="eyebrow">Collections</p>
-                    <h2>Choose a shrine</h2>
-                </div>
-                <div class="category-grid">
-                    <a id="stories" href="#stories" data-shrine-filter="stories">Stories</a>
-                    <a id="poems" href="#poems" data-shrine-filter="poems">Poems</a>
-                    <a href="#essays" data-shrine-filter="essays">Essays</a>
-                    <a href="#comics" data-shrine-filter="comics">Comics</a>
-                    <a href="#ai-stories" data-shrine-filter="ai-stories">AI Stories</a>
-                </div>
-            </section>
-
-            <!-- H09. Public community section -->
+            <!-- H08. Public community section -->
             <section id="community" class="split-section public-view">
                 <div class="writer-spotlight">
                     <p class="eyebrow">Writer Spotlight</p>

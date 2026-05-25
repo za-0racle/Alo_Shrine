@@ -591,6 +591,95 @@ h2 {
   outline-offset: 4px;
 }
 
+.series-feature-card {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 1.2rem;
+  margin-left: auto;
+  width: min(100%, 420px);
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(143, 107, 45, 0.3);
+  border-radius: 10px;
+  background: linear-gradient(120deg, rgba(200, 164, 93, 0.12), rgba(30, 27, 46, 0.06));
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.series-feature-card:hover,
+.series-feature-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(143, 107, 45, 0.48);
+  box-shadow: 0 10px 24px rgba(30, 27, 46, 0.12);
+}
+
+.series-feature-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--alo-black);
+}
+
+.series-feature-card p {
+  margin: 0;
+  color: rgba(30, 27, 46, 0.78);
+  font-size: 0.92rem;
+}
+
+.series-feature-card span {
+  color: var(--alo-gold-dark);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.collection-shell {
+  min-height: 100vh;
+  padding: 3rem 0 4rem;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(200, 164, 93, 0.16), transparent 32%),
+    radial-gradient(circle at 88% 8%, rgba(30, 27, 46, 0.08), transparent 36%),
+    var(--alo-paper);
+}
+
+.collection-hero h1 {
+  margin: 0.4rem 0 0.8rem;
+  font-family: var(--font-display);
+  color: var(--alo-black);
+  font-size: clamp(2rem, 4.5vw, 3.4rem);
+}
+
+.collection-hero p {
+  max-width: 720px;
+}
+
+.collection-actions {
+  margin-top: 1.2rem;
+}
+
+.collection-meta {
+  color: rgba(30, 27, 46, 0.58);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.collection-empty {
+  border: 1px solid rgba(143, 107, 45, 0.28);
+  border-radius: 14px;
+  padding: 1.3rem;
+  background: linear-gradient(160deg, rgba(255, 251, 240, 0.92), rgba(200, 164, 93, 0.08));
+}
+
+.collection-empty h3 {
+  margin: 0.2rem 0 0.6rem;
+  font-family: var(--font-display);
+  color: var(--alo-black);
+}
+
+.collection-empty p {
+  margin-bottom: 1rem;
+}
+
 .split-section {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(280px, 0.72fr);

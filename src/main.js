@@ -9,6 +9,7 @@ const hero = document.querySelector("#hero");
 const content = document.querySelector("#shrine-content");
 const storyGrid = document.querySelector("#story-grid");
 const storySectionHeading = document.querySelector("#explore .section-heading h2");
+const seriesFeatureCard = document.querySelector("#series-feature-card");
 const appLoading = document.querySelector("#app-loading");
 const appLoadingText = document.querySelector("#app-loading-text");
 
@@ -600,6 +601,14 @@ const getFilteredOfferings = (offerings, filterName = activeShrineFilter) => {
   });
 };
 
+const getRecentOfferings = (offerings) => {
+  const ongoingSeries = offerings.filter((post) => getStoryFormat(post) === "series");
+  const recentStandalone = offerings
+    .filter((post) => getStoryFormat(post) !== "series")
+    .slice(0, 4);
+  return [...ongoingSeries, ...recentStandalone].slice(0, 4);
+};
+
 const updateShrineFilterState = (filterName = "all") => {
   activeShrineFilter = filterName;
 
@@ -610,7 +619,7 @@ const updateShrineFilterState = (filterName = "all") => {
   });
 
   if (storySectionHeading) {
-    storySectionHeading.textContent = shrineFilters[filterName]?.label || "New offerings at the shrine";
+    storySectionHeading.textContent = shrineFilters[filterName]?.label || "Well of stories";
   }
 };
 
@@ -625,8 +634,15 @@ const openWriterProfileFromEvent = (event, writerId) => {
 // J06. Public offering rendering.
 const renderFeaturedStories = async (filterName = activeShrineFilter) => {
   updateShrineFilterState(filterName);
-  const offerings = getFilteredOfferings(await getPublicOfferings(), filterName);
+  const allOfferings = await getPublicOfferings();
+  const offerings = shrineFilters[filterName]
+    ? getFilteredOfferings(allOfferings, filterName)
+    : getRecentOfferings(allOfferings);
   storyGrid.innerHTML = "";
+  if (seriesFeatureCard) {
+    seriesFeatureCard.classList.add("hidden");
+    seriesFeatureCard.replaceChildren();
+  }
 
   if (!offerings.length) {
     const emptyState = document.createElement("p");
@@ -636,6 +652,29 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
       : "No published offerings yet.";
     storyGrid.appendChild(emptyState);
     return;
+  }
+
+  if (!shrineFilters[filterName] && seriesFeatureCard) {
+    const highlightedSeries = allOfferings.find((post) => getStoryFormat(post) === "series");
+    if (highlightedSeries) {
+      const title = document.createElement("h3");
+      const meta = document.createElement("p");
+      const action = document.createElement("span");
+      title.textContent = highlightedSeries.series?.title || getDisplayTitle(highlightedSeries);
+      meta.textContent = highlightedSeries.series_order
+        ? `Now ongoing - Episode ${highlightedSeries.series_order}`
+        : "Now ongoing";
+      action.textContent = "Continue series";
+      seriesFeatureCard.append(title, meta, action);
+      seriesFeatureCard.classList.remove("hidden");
+      seriesFeatureCard.onclick = () => openStory(highlightedSeries.id);
+      seriesFeatureCard.onkeydown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openStory(highlightedSeries.id);
+        }
+      };
+    }
   }
 
   offerings.forEach((story) => {
@@ -2615,10 +2654,17 @@ const bootstrapApp = async () => {
   await authActions.initializeSessionGuard();
   await authActions.enforceSessionPolicy();
 
-  const initialStoryId = new URLSearchParams(window.location.search).get("story");
+  const params = new URLSearchParams(window.location.search);
+  const initialStoryId = params.get("story");
+  const categoryFromUrl = params.get("category");
+  const normalizedCategory = categoryFromUrl && shrineFilters[categoryFromUrl] ? categoryFromUrl : null;
 
   try {
-    await Promise.all([renderFeaturedStories(), renderScreenPreviews(), initSession()]);
+    await Promise.all([
+      renderFeaturedStories(normalizedCategory || "all"),
+      renderScreenPreviews(),
+      initSession(),
+    ]);
 
     if (initialStoryId) {
       hero?.classList.add("lifted");
@@ -2626,6 +2672,12 @@ const bootstrapApp = async () => {
       content?.classList.add("visible");
       document.body.style.overflowY = "auto";
       await openStory(initialStoryId);
+    } else if (normalizedCategory) {
+      hero?.classList.add("lifted");
+      content?.classList.remove("hidden");
+      content?.classList.add("visible");
+      document.body.style.overflowY = "auto";
+      await showView("home", "#explore");
     }
   } finally {
     setAppLoading(false);
