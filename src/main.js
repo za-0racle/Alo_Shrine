@@ -9,7 +9,7 @@ const hero = document.querySelector("#hero");
 const content = document.querySelector("#shrine-content");
 const storyGrid = document.querySelector("#story-grid");
 const storySectionHeading = document.querySelector("#explore .section-heading h2");
-const seriesFeatureCard = document.querySelector("#series-feature-card");
+const ongoingSeriesList = document.querySelector("#ongoing-series-list");
 const appLoading = document.querySelector("#app-loading");
 const appLoadingText = document.querySelector("#app-loading-text");
 
@@ -137,6 +137,7 @@ let currentOpenPost = null;
 let publicOfferingsCache = null;
 let activeShrineFilter = "all";
 let selectedProfileAvatarDataUrl = "";
+const youtubeCreatorCache = new Map();
 
 const shrineFilters = {
   stories: {
@@ -602,11 +603,28 @@ const getFilteredOfferings = (offerings, filterName = activeShrineFilter) => {
 };
 
 const getRecentOfferings = (offerings) => {
-  const ongoingSeries = offerings.filter((post) => getStoryFormat(post) === "series");
   const recentStandalone = offerings
     .filter((post) => getStoryFormat(post) !== "series")
     .slice(0, 4);
-  return [...ongoingSeries, ...recentStandalone].slice(0, 4);
+  return recentStandalone;
+};
+
+const getOngoingSeriesOfferings = (offerings) => {
+  const latestBySeries = new Map();
+  offerings
+    .filter((post) => getStoryFormat(post) === "series" && post.series_id)
+    .forEach((post) => {
+      const existing = latestBySeries.get(post.series_id);
+      const nextDate = new Date(post.created_at || 0).getTime();
+      const prevDate = new Date(existing?.created_at || 0).getTime();
+      if (!existing || nextDate > prevDate) {
+        latestBySeries.set(post.series_id, post);
+      }
+    });
+
+  return [...latestBySeries.values()]
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 10);
 };
 
 const updateShrineFilterState = (filterName = "all") => {
@@ -639,9 +657,10 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
     ? getFilteredOfferings(allOfferings, filterName)
     : getRecentOfferings(allOfferings);
   storyGrid.innerHTML = "";
-  if (seriesFeatureCard) {
-    seriesFeatureCard.classList.add("hidden");
-    seriesFeatureCard.replaceChildren();
+  if (ongoingSeriesList) {
+    ongoingSeriesList.innerHTML = "";
+    const showSeriesColumn = !shrineFilters[filterName];
+    ongoingSeriesList.closest(".ongoing-series-column")?.classList.toggle("hidden", !showSeriesColumn);
   }
 
   if (!offerings.length) {
@@ -654,26 +673,41 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
     return;
   }
 
-  if (!shrineFilters[filterName] && seriesFeatureCard) {
-    const highlightedSeries = allOfferings.find((post) => getStoryFormat(post) === "series");
-    if (highlightedSeries) {
-      const title = document.createElement("h3");
-      const meta = document.createElement("p");
-      const action = document.createElement("span");
-      title.textContent = highlightedSeries.series?.title || getDisplayTitle(highlightedSeries);
-      meta.textContent = highlightedSeries.series_order
-        ? `Now ongoing - Episode ${highlightedSeries.series_order}`
-        : "Now ongoing";
-      action.textContent = "Continue series";
-      seriesFeatureCard.append(title, meta, action);
-      seriesFeatureCard.classList.remove("hidden");
-      seriesFeatureCard.onclick = () => openStory(highlightedSeries.id);
-      seriesFeatureCard.onkeydown = (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openStory(highlightedSeries.id);
-        }
-      };
+  if (!shrineFilters[filterName] && ongoingSeriesList) {
+    const seriesItems = getOngoingSeriesOfferings(allOfferings);
+    if (!seriesItems.length) {
+      const emptySeries = document.createElement("p");
+      emptySeries.className = "empty-state";
+      emptySeries.textContent = "No ongoing series yet.";
+      ongoingSeriesList.appendChild(emptySeries);
+    } else {
+      seriesItems.forEach((seriesPost) => {
+        const card = document.createElement("article");
+        const title = document.createElement("h4");
+        const meta = document.createElement("p");
+        const author = document.createElement("p");
+
+        card.className = "series-feature-card";
+        card.tabIndex = 0;
+        card.role = "button";
+        title.textContent = seriesPost.series?.title || getDisplayTitle(seriesPost);
+        meta.textContent = seriesPost.series_order
+          ? `Latest: Episode ${seriesPost.series_order}`
+          : "Latest episode available";
+        author.className = "series-feature-author";
+        author.textContent = `By ${seriesPost.authorName || "Unknown scribe"}`;
+
+        card.addEventListener("click", () => openStory(seriesPost.id));
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openStory(seriesPost.id);
+          }
+        });
+
+        card.append(title, meta, author);
+        ongoingSeriesList.appendChild(card);
+      });
     }
   }
 
@@ -2354,8 +2388,6 @@ document.querySelector("#toggle-focus")?.addEventListener("click", () => {
 });
 
 document.querySelector("#add-bookmark")?.addEventListener("click", toggleBookmark);
-document.querySelector("#share-native")?.addEventListener("click", shareCurrentStory);
-document.querySelector("#copy-story-link")?.addEventListener("click", copyStoryLink);
 
 // J23. Reader exit controls.
 document.querySelector("#exit-reader")?.addEventListener("click", () => {
@@ -2387,6 +2419,85 @@ const getMediaType = (url) => {
   }
 
   return "cinematic_still";
+};
+
+const getYoutubeCreatorName = async (url) => {
+  if (!url) return "";
+  if (youtubeCreatorCache.has(url)) return youtubeCreatorCache.get(url) || "";
+
+  try {
+    const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const response = await fetch(endpoint);
+    if (!response.ok) throw new Error("Creator lookup failed");
+    const data = await response.json();
+    const creatorName = data?.author_name?.trim() || "";
+    youtubeCreatorCache.set(url, creatorName);
+    return creatorName;
+  } catch {
+    youtubeCreatorCache.set(url, "");
+    return "";
+  }
+};
+
+const getMediaShareMessage = (item) => {
+  const creator = item?.creator_name ? ` by ${item.creator_name}` : "";
+  return `Watch "${item?.title || "this vision"}"${creator} on alo's Shrine Screen.`;
+};
+
+const shareMediaItem = async (item) => {
+  if (!item?.url || !navigator.share) return;
+  const message = getMediaShareMessage(item);
+  await navigator.share({
+    title: item?.title || "Shrine Screen vision",
+    text: message,
+    url: item.url,
+  });
+};
+
+const buildMediaShareActions = (item) => {
+  const wrap = document.createElement("div");
+  const whatsapp = document.createElement("a");
+  const threads = document.createElement("a");
+  const x = document.createElement("a");
+  const message = getMediaShareMessage(item);
+  const encodedText = encodeURIComponent(message);
+  const encodedUrl = encodeURIComponent(item.url || "");
+
+  wrap.className = "media-share-actions";
+  whatsapp.className = "share-btn share-icon-btn";
+  whatsapp.href = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+  whatsapp.target = "_blank";
+  whatsapp.rel = "noopener noreferrer";
+  whatsapp.textContent = "W";
+  whatsapp.setAttribute("aria-label", "Share on WhatsApp");
+  whatsapp.title = "WhatsApp";
+
+  threads.className = "share-btn share-icon-btn";
+  threads.href = `https://www.threads.net/intent/post?text=${encodedText}%20${encodedUrl}`;
+  threads.target = "_blank";
+  threads.rel = "noopener noreferrer";
+  threads.textContent = "@";
+  threads.setAttribute("aria-label", "Share on Threads");
+  threads.title = "Threads";
+
+  x.className = "share-btn share-icon-btn";
+  x.href = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+  x.target = "_blank";
+  x.rel = "noopener noreferrer";
+  x.textContent = "X";
+  x.setAttribute("aria-label", "Share on X");
+  x.title = "X";
+
+  wrap.append(whatsapp, threads, x);
+  return wrap;
+};
+
+const hydrateMediaCreator = async (item) => {
+  if (!item) return item;
+  if (item.media_type !== "youtube") return item;
+  if (item.creator_name) return item;
+  const creator = await getYoutubeCreatorName(item.url);
+  return { ...item, creator_name: creator };
 };
 
 // J24. Shrine Screen playback helpers.
@@ -2424,6 +2535,7 @@ const renderMediaCard = (item) => {
   const info = document.createElement("div");
   const title = document.createElement("h3");
   const meta = document.createElement("span");
+  const shareActions = buildMediaShareActions(item);
   const videoId = item.media_type === "youtube" ? getYoutubeID(item.url) : "";
   const thumbUrl = item.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
 
@@ -2440,8 +2552,9 @@ const renderMediaCard = (item) => {
   }
 
   title.textContent = item.title || "Untitled vision";
-  meta.textContent = item.media_type || "vision";
-
+  meta.textContent = item.creator_name
+    ? `${item.media_type || "vision"} - by ${item.creator_name}`
+    : item.media_type || "vision";
   const open = () => openVideoModal(item.url, item.media_type);
   card.addEventListener("click", open);
   card.addEventListener("keydown", (event) => {
@@ -2452,7 +2565,7 @@ const renderMediaCard = (item) => {
   });
 
   info.append(title, meta);
-  card.append(thumbnail, info);
+  card.append(thumbnail, info, shareActions);
   return card;
 };
 
@@ -2476,13 +2589,16 @@ const renderScreenPreviewCard = (item, index) => {
   const thumb = document.createElement("div");
   const title = document.createElement("h3");
   const meta = document.createElement("span");
+  const shareActions = item.url ? buildMediaShareActions(item) : null;
   const videoId = item.media_type === "youtube" ? getYoutubeID(item.url) : "";
   const thumbUrl = item.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
 
   card.className = `screen-preview-card preview-tone-${index + 1}`;
   thumb.className = "screen-preview-thumb";
   title.textContent = item.title || "Untitled vision";
-  meta.textContent = item.media_type || "vision";
+  meta.textContent = item.creator_name
+    ? `${item.media_type || "vision"} - ${item.creator_name}`
+    : item.media_type || "vision";
 
   if (thumbUrl && isSafeImageUrl(thumbUrl)) {
     thumb.style.backgroundImage = `url("${thumbUrl}")`;
@@ -2502,6 +2618,7 @@ const renderScreenPreviewCard = (item, index) => {
   }
 
   card.append(thumb, title, meta);
+  if (shareActions) card.appendChild(shareActions);
   return card;
 };
 
@@ -2512,11 +2629,11 @@ async function renderScreenPreviews() {
 
   const { data: mediaItems = [], error } = await supabase
     .from("media")
-    .select("title, url, media_type, thumbnail_url, created_at")
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(3);
 
-  const previews = error || !mediaItems.length ? screenPreviewPlaceholders : mediaItems;
+  const previews = error || !mediaItems.length ? screenPreviewPlaceholders : await Promise.all(mediaItems.map(hydrateMediaCreator));
   previews.forEach((item, index) => screenPreviewGrid.appendChild(renderScreenPreviewCard(item, index)));
 }
 
@@ -2528,7 +2645,7 @@ async function loadShrineScreen() {
 
   const { data: mediaItems = [], error } = await supabase
     .from("media")
-    .select("title, url, media_type, thumbnail_url, created_at")
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(24);
 
@@ -2550,7 +2667,8 @@ async function loadShrineScreen() {
   }
 
   const fragment = document.createDocumentFragment();
-  mediaItems.forEach((item) => fragment.appendChild(renderMediaCard(item)));
+  const enrichedItems = await Promise.all(mediaItems.map(hydrateMediaCreator));
+  enrichedItems.forEach((item) => fragment.appendChild(renderMediaCard(item)));
   videoGrid.appendChild(fragment);
 }
 
@@ -2594,12 +2712,14 @@ submitVisionBtn?.addEventListener("click", async () => {
 
   submitVisionBtn.textContent = "Offering...";
   submitVisionBtn.disabled = true;
+  const creatorName = getMediaType(url) === "youtube" ? await getYoutubeCreatorName(url) : "";
 
   const payload = {
     title,
     url,
     media_type: getMediaType(url),
     author_id: user.id,
+    creator_name: creatorName,
   };
 
   const request = currentEditingVisionId
@@ -2611,8 +2731,8 @@ submitVisionBtn?.addEventListener("click", async () => {
 
   let { error } = await request;
 
-  if (error && isMissingColumnError(error, "author_id")) {
-    const { author_id: _authorId, ...legacyPayload } = payload;
+  if (error && (isMissingColumnError(error, "author_id") || isMissingColumnError(error, "creator_name"))) {
+    const { author_id: _authorId, creator_name: _creatorName, ...legacyPayload } = payload;
     const fallbackRequest = currentEditingVisionId
       ? supabase.from("media").update(legacyPayload).eq("id", currentEditingVisionId)
       : supabase.from("media").insert([legacyPayload]);

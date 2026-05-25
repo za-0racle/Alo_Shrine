@@ -94,8 +94,16 @@
                     <p class="eyebrow">Recent Offerings</p>
                     <h2>Well of stories</h2>
                 </div>
-                <div id="series-feature-card" class="series-feature-card hidden" role="button" tabindex="0" aria-label="Open ongoing series"></div>
-                <div id="story-grid" class="story-grid" aria-live="polite"></div>
+                <div class="explore-columns">
+                    <aside class="ongoing-series-column">
+                        <div class="series-column-header">
+                            <p class="eyebrow">Ongoing Series</p>
+                            <h3>Continuing Scrolls</h3>
+                        </div>
+                        <div id="ongoing-series-list" class="ongoing-series-list" aria-live="polite"></div>
+                    </aside>
+                    <div id="story-grid" class="story-grid" aria-live="polite"></div>
+                </div>
             </section>
 
             <!-- H07. Public media promotion band -->
@@ -492,12 +500,10 @@
                 <div class="divider">✦</div>
                 <p>You have finished this offering.</p>
                 <div class="reader-share-actions" aria-label="Share this story">
-                    <button id="share-native" class="share-btn" type="button">Share</button>
-                    <a id="share-whatsapp" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-                    <a id="share-threads" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">Threads</a>
-                    <a id="share-facebook" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
-                    <a id="share-x" class="share-btn" href="#" target="_blank" rel="noopener noreferrer">X</a>
-                    <button id="copy-story-link" class="share-btn" type="button">Copy Link</button>
+                    <a id="share-whatsapp" class="share-btn share-icon-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" title="WhatsApp">W</a>
+                    <a id="share-threads" class="share-btn share-icon-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on Threads" title="Threads">@</a>
+                    <a id="share-facebook" class="share-btn share-icon-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" title="Facebook">f</a>
+                    <a id="share-x" class="share-btn share-icon-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on X" title="X">X</a>
                 </div>
                 <button id="toggle-comments" class="text-btn" type="button">Listen to the Circle (Comments)</button>
             </footer>
