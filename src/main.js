@@ -199,13 +199,19 @@ const getSeriesLabel = (post) => {
 const getDisplayTitle = (post) => post.title || "Untitled offering";
 
 const getStoryShareUrl = (postId = currentOpenPostId) => {
-  const url = new URL(window.location.href);
-  url.searchParams.set("story", postId);
-  url.hash = "reader";
-  return url.toString();
+  return new URL(`/share/${postId}.html`, window.location.origin).toString();
 };
 
 const getAbsoluteAssetUrl = (path) => new URL(path, window.location.origin).toString();
+
+const toAbsoluteUrl = (value = "") => {
+  if (!value) return "";
+  try {
+    return new URL(value, window.location.origin).toString();
+  } catch {
+    return "";
+  }
+};
 
 const getFirstImageFromContent = (content = "") => {
   const template = document.createElement("template");
@@ -232,7 +238,9 @@ const getReaderFriendlyContent = (content = "") => {
 };
 
 const getPostCoverImage = (post = currentOpenPost) =>
-  post?.series?.cover_url || getFirstImageFromContent(post?.content || "") || getAbsoluteAssetUrl("/alo-banner.png");
+  toAbsoluteUrl(post?.series?.cover_url) ||
+  toAbsoluteUrl(getFirstImageFromContent(post?.content || "")) ||
+  getAbsoluteAssetUrl("/alo-logo.png");
 
 const getShareTitle = (post = currentOpenPost) => {
   if (!post) return currentOpenPostTitle || "A story from alo";
@@ -279,12 +287,24 @@ const updateShareMetadata = (post = currentOpenPost) => {
   upsertMetaTag('meta[property="og:title"]', { property: "og:title", content: title });
   upsertMetaTag('meta[property="og:description"]', { property: "og:description", content: description });
   upsertMetaTag('meta[property="og:image"]', { property: "og:image", content: image });
+  upsertMetaTag('meta[property="og:image:secure_url"]', { property: "og:image:secure_url", content: image });
+  upsertMetaTag('meta[property="og:image:type"]', { property: "og:image:type", content: "image/png" });
   upsertMetaTag('meta[property="og:url"]', { property: "og:url", content: url });
   upsertMetaTag('meta[property="og:type"]', { property: "og:type", content: "article" });
   upsertMetaTag('meta[name="twitter:card"]', { name: "twitter:card", content: "summary_large_image" });
   upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title", content: title });
   upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description", content: description });
   upsertMetaTag('meta[name="twitter:image"]', { name: "twitter:image", content: image });
+};
+
+const applyBaseShareMetadata = () => {
+  const fallbackImage = getAbsoluteAssetUrl("/alo-logo.png");
+  const pageUrl = window.location.href;
+  upsertMetaTag('meta[property="og:image"]', { property: "og:image", content: fallbackImage });
+  upsertMetaTag('meta[property="og:image:secure_url"]', { property: "og:image:secure_url", content: fallbackImage });
+  upsertMetaTag('meta[property="og:image:type"]', { property: "og:image:type", content: "image/png" });
+  upsertMetaTag('meta[name="twitter:image"]', { name: "twitter:image", content: fallbackImage });
+  upsertMetaTag('meta[property="og:url"]', { property: "og:url", content: pageUrl });
 };
 
 const isMissingColumnError = (error, columnName) =>
@@ -2769,6 +2789,7 @@ videoModal?.addEventListener("click", (event) => {
 document.body.style.overflowY = "hidden";
 const bootstrapApp = async () => {
   setAppLoading(true, "Opening the shrine...");
+  applyBaseShareMetadata();
   renderAuthMode();
   syncSidebarPanelsForViewport();
   await authActions.initializeSessionGuard();

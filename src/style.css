@@ -3620,8 +3620,7 @@ iframe {
 
   .dashboard-actions,
   .editor-actions,
-  .admin-actions,
-  .reader-share-actions {
+  .admin-actions {
     display: grid;
     grid-template-columns: 1fr;
     width: 100%;
@@ -3629,9 +3628,29 @@ iframe {
 
   .dashboard-actions > *,
   .editor-actions > *,
-  .admin-actions > *,
-  .reader-share-actions > * {
+  .admin-actions > * {
     width: 100%;
+  }
+
+  .reader-share-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    overflow-x: auto;
+    padding-inline: 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .reader-share-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reader-share-actions > * {
+    width: auto;
+    min-width: 2.25rem;
   }
 
   .dashboard-tabs {
