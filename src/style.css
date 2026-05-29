@@ -395,11 +395,13 @@ h2 {
   object-fit: cover;
 }
 
-.story-card[role="button"] {
+.story-card[role="button"],
+a.story-card {
   cursor: pointer;
 }
 
-.story-card[role="button"]:focus-visible {
+.story-card[role="button"]:focus-visible,
+a.story-card:focus-visible {
   outline: 2px solid var(--alo-gold-dark);
   outline-offset: 4px;
 }
@@ -3047,6 +3049,7 @@ iframe {
   }
 
   .story-card[role="button"]:hover,
+  a.story-card:hover,
   .offering-card[role="button"]:hover,
   .screen-preview-card[role="button"]:hover,
   .category-grid a:hover,
@@ -3141,6 +3144,8 @@ iframe {
 
 .story-card[role="button"]:hover,
 .story-card[role="button"]:focus-visible,
+a.story-card:hover,
+a.story-card:focus-visible,
 .offering-card[role="button"]:hover,
 .offering-card[role="button"]:focus-visible {
   border-color: rgba(143, 107, 45, 0.36);

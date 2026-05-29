@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/stories/:path*", "destination": "/index.html" },
+    { "source": "/poems/:path*", "destination": "/index.html" },
+    { "source": "/essays/:path*", "destination": "/index.html" },
+    { "source": "/comics/:path*", "destination": "/index.html" },
+    { "source": "/ai-stories/:path*", "destination": "/index.html" }
+  ]
+}

@@ -198,7 +198,39 @@ const getSeriesLabel = (post) => {
 
 const getDisplayTitle = (post) => post.title || "Untitled offering";
 
+const slugify = (value = "") =>
+  value
+    .toString()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "offering";
+
+const getCollectionPathForPost = (post = {}) => {
+  const type = (post.type || "").toLowerCase();
+  if (["poem", "poetry"].includes(type)) return "poems";
+  if (type === "essay") return "essays";
+  if (type === "comic") return "comics";
+  if (["ai-story", "audio-story"].includes(type)) return "ai-stories";
+  return "stories";
+};
+
+const getCleanStoryPath = (post = currentOpenPost) => {
+  if (!post?.id) return "/";
+  return `/${getCollectionPathForPost(post)}/${post.id}/${slugify(getShareTitle(post))}`;
+};
+
+const getCleanStoryUrl = (post = currentOpenPost) => new URL(getCleanStoryPath(post), window.location.origin).toString();
+
+const getStoryIdFromPath = () => {
+  const match = window.location.pathname.match(/^\/(?:stories|poems|essays|comics|ai-stories)\/([^/]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+};
+
 const getStoryShareUrl = (postId = currentOpenPostId) => {
+  if (currentOpenPost?.id === postId) return getCleanStoryUrl(currentOpenPost);
   const url = new URL(window.location.href);
   url.searchParams.set("story", postId);
   url.hash = "reader";
@@ -283,7 +315,7 @@ const updateShareMetadata = (post = currentOpenPost) => {
   const title = getShareTitle(post);
   const description = getShareMessage(post);
   const image = getPostCoverImage(post);
-  const url = getStoryShareUrl(post.id);
+  const url = getCleanStoryUrl(post);
 
   document.title = `${title} - Shrine of Tales`;
   upsertMetaTag('meta[name="description"]', { name: "description", content: description });
@@ -298,6 +330,14 @@ const updateShareMetadata = (post = currentOpenPost) => {
   upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title", content: title });
   upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description", content: description });
   upsertMetaTag('meta[name="twitter:image"]', { name: "twitter:image", content: image });
+
+  let canonical = document.head.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.appendChild(canonical);
+  }
+  canonical.href = url;
 };
 
 const applyBaseShareMetadata = () => {
@@ -2351,7 +2391,8 @@ const updateSeriesNavigation = async (post) => {
 };
 
 // J21. Reader story loading and series navigation.
-async function openStory(postId) {
+async function openStory(postId, options = {}) {
+  const { updateUrl = true } = options;
   const readerView = document.querySelector("#reader-view");
   if (!readerView) return;
 
@@ -2377,6 +2418,7 @@ async function openStory(postId) {
   const content = post.content || "";
   currentOpenPost = post;
   currentOpenPostTitle = getDisplayTitle(post);
+  if (updateUrl) window.history.pushState({ storyId: post.id }, "", getCleanStoryPath(post));
 
   document.querySelector("#reader-title").textContent = currentOpenPostTitle;
   const readerAuthor = document.querySelector("#reader-author");
@@ -2405,6 +2447,20 @@ async function openStory(postId) {
 
 window.openStory = openStory;
 
+window.addEventListener("popstate", async () => {
+  const storyId = getStoryIdFromPath() || new URLSearchParams(window.location.search).get("story");
+  if (storyId) {
+    await openStory(storyId, { updateUrl: false });
+    return;
+  }
+
+  document.querySelector("#reader-view")?.classList.add("hidden");
+  publicViews.forEach((view) => view.classList.remove("hidden"));
+  document.body.classList.remove("focus-mode");
+  currentOpenPostId = null;
+  currentOpenPost = null;
+});
+
 // J22. Focus mode toggle.
 document.querySelector("#toggle-focus")?.addEventListener("click", () => {
   document.body.classList.toggle("focus-mode");
@@ -2417,6 +2473,9 @@ document.querySelector("#exit-reader")?.addEventListener("click", () => {
   document.querySelector("#reader-view")?.classList.add("hidden");
   publicViews.forEach((view) => view.classList.remove("hidden"));
   document.body.classList.remove("focus-mode");
+  currentOpenPostId = null;
+  currentOpenPost = null;
+  window.history.pushState({}, "", "/");
   scrollToSection("#home");
 });
 
@@ -2799,7 +2858,7 @@ const bootstrapApp = async () => {
   await authActions.enforceSessionPolicy();
 
   const params = new URLSearchParams(window.location.search);
-  const initialStoryId = params.get("story");
+  const initialStoryId = getStoryIdFromPath() || params.get("story");
   const categoryFromUrl = params.get("category");
   const normalizedCategory = categoryFromUrl && shrineFilters[categoryFromUrl] ? categoryFromUrl : null;
 
@@ -2815,7 +2874,7 @@ const bootstrapApp = async () => {
       content?.classList.remove("hidden");
       content?.classList.add("visible");
       document.body.style.overflowY = "auto";
-      await openStory(initialStoryId);
+      await openStory(initialStoryId, { updateUrl: !getStoryIdFromPath() });
     } else if (normalizedCategory) {
       hero?.classList.add("lifted");
       content?.classList.remove("hidden");

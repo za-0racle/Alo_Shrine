@@ -34,11 +34,22 @@ const selectedFilter = shrineFilters[collectionKey];
 const titleElement = document.querySelector("#collection-title");
 const introElement = document.querySelector("#collection-intro");
 const grid = document.querySelector("#collection-grid");
+const SITE_URL = "https://aloshrine.ink";
 
 const getStoryFormat = (post = null) =>
   post?.series_id || post?.series ? "series" : post?.story_format || "standalone";
 
 const getDisplayTitle = (post) => post.title || "Untitled offering";
+
+const slugify = (value = "") =>
+  value
+    .toString()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "offering";
 
 const getStoryExcerpt = (post) => {
   const text = (post.content || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -55,6 +66,46 @@ const calculateReadingTime = (content = "") => {
   const plainText = content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   const words = plainText ? plainText.split(" ").length : 0;
   return Math.max(1, Math.ceil(words / 220));
+};
+
+const getPageUrl = () => new URL(`${collectionKey}.html`, `${SITE_URL}/`).toString();
+
+const getPostPath = (post) => `/${collectionKey}/${post.id}/${slugify(getDisplayTitle(post))}`;
+
+const getPostUrl = (post) => new URL(getPostPath(post), `${SITE_URL}/`).toString();
+
+const upsertStructuredData = (offerings = []) => {
+  if (!selectedFilter) return;
+
+  let script = document.querySelector("#collection-structured-data");
+  if (!script) {
+    script = document.createElement("script");
+    script.id = "collection-structured-data";
+    script.type = "application/ld+json";
+    document.head.appendChild(script);
+  }
+
+  script.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${selectedFilter.label} | àlọ́`,
+    url: getPageUrl(),
+    description: selectedFilter.intro,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "àlọ́",
+      url: SITE_URL,
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: offerings.slice(0, 20).map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: getPostUrl(post),
+        name: getDisplayTitle(post),
+      })),
+    },
+  });
 };
 
 const renderEmptyState = () => {
@@ -89,6 +140,7 @@ const bootstrap = async () => {
     const type = (post.type || "").toLowerCase();
     return selectedFilter.types.includes(type) || (collectionKey === "stories" && getStoryFormat(post) === "series");
   });
+  upsertStructuredData(offerings);
 
   if (!offerings.length) {
     renderEmptyState();
@@ -97,32 +149,21 @@ const bootstrap = async () => {
 
   grid.replaceChildren();
   offerings.forEach((post) => {
-    const card = document.createElement("article");
+    const card = document.createElement("a");
     const title = document.createElement("h3");
     const meta = document.createElement("p");
     const excerpt = document.createElement("p");
     const readTime = document.createElement("span");
+    const openLink = getPostPath(post);
 
     card.className = "story-card";
-    card.tabIndex = 0;
-    card.role = "button";
+    card.href = openLink;
     title.textContent = getDisplayTitle(post);
     meta.className = "eyebrow";
     meta.textContent = getSeriesLabel(post);
     excerpt.textContent = getStoryExcerpt(post);
     readTime.className = "collection-meta";
     readTime.textContent = `${calculateReadingTime(post.content || "")} min read`;
-
-    const openLink = `./index.html?story=${post.id}#reader`;
-    card.addEventListener("click", () => {
-      window.location.href = openLink;
-    });
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        window.location.href = openLink;
-      }
-    });
 
     card.append(meta, title, excerpt, readTime);
     grid.appendChild(card);
