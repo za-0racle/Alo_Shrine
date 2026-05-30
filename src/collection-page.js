@@ -88,13 +88,23 @@ const upsertStructuredData = (offerings = []) => {
   script.textContent = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
+    "@id": `${getPageUrl()}#webpage`,
     name: `${selectedFilter.label} | àlọ́`,
     url: getPageUrl(),
     description: selectedFilter.intro,
     isPartOf: {
       "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+    },
+    about: {
+      "@type": "Brand",
+      "@id": `${SITE_URL}/#brand`,
       name: "àlọ́",
-      url: SITE_URL,
+      alternateName: "Shrine of Tales",
+    },
+    publisher: {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
     },
     mainEntity: {
       "@type": "ItemList",

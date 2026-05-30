@@ -275,7 +275,7 @@ const getReaderFriendlyContent = (content = "") => {
 const getPostCoverImage = (post = currentOpenPost) =>
   toAbsoluteUrl(post?.series?.cover_url) ||
   toAbsoluteUrl(getFirstImageFromContent(post?.content || "")) ||
-  getAbsoluteAssetUrl("/alo-logo.png");
+  getAbsoluteAssetUrl("/alo-logo-trans.png");
 
 const getShareTitle = (post = currentOpenPost) => {
   if (!post) return currentOpenPostTitle || "A story from alo";
@@ -341,7 +341,7 @@ const updateShareMetadata = (post = currentOpenPost) => {
 };
 
 const applyBaseShareMetadata = () => {
-  const fallbackImage = getAbsoluteAssetUrl("/alo-logo.png");
+  const fallbackImage = getAbsoluteAssetUrl("/alo-banner-trans.png");
   const pageUrl = window.location.href;
   upsertMetaTag('meta[property="og:image"]', { property: "og:image", content: fallbackImage });
   upsertMetaTag('meta[property="og:image:secure_url"]', { property: "og:image:secure_url", content: fallbackImage });
