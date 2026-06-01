@@ -2414,6 +2414,12 @@ async function openStory(postId, options = {}) {
   shrineScreenView?.classList.add("hidden");
   scrollView?.classList.add("hidden");
   writerProfileView?.classList.add("hidden");
+  document.querySelector("#reader-title").textContent = "Opening story...";
+  document.querySelector("#reader-author").textContent = "";
+  document.querySelector("#reader-category").textContent = "";
+  document.querySelector("#reader-body").innerHTML = "";
+  document.querySelector("#reading-time").textContent = "";
+  seriesNavigation?.classList.add("hidden");
   readerView.classList.remove("hidden");
   window.scrollTo(0, 0);
 
