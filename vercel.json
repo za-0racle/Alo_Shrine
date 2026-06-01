@@ -1,4 +1,17 @@
 {
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.aloshrine.ink" }],
+      "destination": "https://aloshrine.ink/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/stories/:path*", "destination": "/index.html" },
     { "source": "/poems/:path*", "destination": "/index.html" },

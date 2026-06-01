@@ -124,7 +124,7 @@ const renderEmptyState = () => {
       <p class="eyebrow">No Offerings Yet</p>
       <h3>The altar is ready.</h3>
       <p>This shrine has no published works yet. Return soon for new offerings.</p>
-      <a class="text-button" href="./index.html#home">Return to the main shrine</a>
+      <a class="text-button" href="/#home">Return to the main shrine</a>
     </article>
   `;
 };
