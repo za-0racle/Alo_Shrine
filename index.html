@@ -20,6 +20,30 @@
     <meta name="twitter:title" content="àlọ́ - Shrine of Tales">
     <meta name="twitter:description" content="Discover African-rooted stories, poems, essays, comics, folklore, and cinematic AI tales at àlọ́.">
     <meta name="twitter:image" content="https://aloshrine.ink/alo-banner-trans.png">
+    <script>
+      window.__aloStartupFallback = function (error) {
+        console.error("alo startup issue:", error);
+        var releaseLoader = function () {
+          var loader = document.querySelector("#app-loading");
+          var loadingText = document.querySelector("#app-loading-text");
+          if (loadingText) loadingText.textContent = "The shrine is open. Some offerings may still be loading.";
+          if (loader) loader.classList.add("hidden");
+          if (document.body) document.body.style.overflowY = "auto";
+        };
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", releaseLoader, { once: true });
+        } else {
+          releaseLoader();
+        }
+      };
+      window.addEventListener("error", function (event) {
+        window.__aloStartupFallback(event.error || event.message);
+      });
+      window.addEventListener("unhandledrejection", function (event) {
+        window.__aloStartupFallback(event.reason);
+      });
+    </script>
     <title>àlọ́ - African Stories, Poems, Comics and AI Tales</title>
     <link rel="icon" type="image/png" href="/alo-monogram-trans.png">
     <link rel="apple-touch-icon" href="/alo-monogram-trans.png">
@@ -218,11 +242,11 @@
                     <h2>Choose a shrine</h2>
                 </div>
                 <div class="category-grid">
-                    <a id="stories" href="./stories.html">Stories</a>
-                    <a id="poems" href="./poems.html">Poems</a>
-                    <a href="./essays.html">Essays</a>
-                    <a href="./comics.html">Comics</a>
-                    <a href="./ai-stories.html">AI Stories</a>
+                    <a id="stories" data-shrine="stories" href="./stories.html">Stories</a>
+                    <a id="poems" data-shrine="poems" href="./poems.html">Poems</a>
+                    <a data-shrine="essays" href="./essays.html">Essays</a>
+                    <a data-shrine="comics" href="./comics.html">Comics</a>
+                    <a data-shrine="ai-stories" href="./ai-stories.html">AI Stories</a>
                 </div>
             </section>
 

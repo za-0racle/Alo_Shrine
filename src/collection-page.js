@@ -132,6 +132,7 @@ const renderEmptyState = () => {
 const bootstrap = async () => {
   if (!selectedFilter || !grid || !titleElement || !introElement) return;
 
+  document.body.dataset.shrine = collectionKey;
   titleElement.textContent = selectedFilter.label;
   introElement.textContent = selectedFilter.intro;
 

@@ -12,9 +12,48 @@
   --alo-calm: #4ec9b0;
   --alo-emotion: #ff6b6b;
   --alo-ai: #b86bff;
+  --shrine-accent: var(--alo-gold);
+  --shrine-deep: var(--alo-gold-dark);
+  --shrine-soft: rgba(200, 164, 93, 0.16);
+  --shrine-glow: rgba(200, 164, 93, 0.24);
   --font-display: "Playfair Display", Georgia, serif;
   --font-body: "Inter", Arial, sans-serif;
   --ease: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+[data-shrine="stories"] {
+  --shrine-accent: #c86f4a;
+  --shrine-deep: #8f432d;
+  --shrine-soft: rgba(200, 111, 74, 0.16);
+  --shrine-glow: rgba(200, 111, 74, 0.28);
+}
+
+[data-shrine="poems"] {
+  --shrine-accent: #d65f86;
+  --shrine-deep: #97405d;
+  --shrine-soft: rgba(214, 95, 134, 0.15);
+  --shrine-glow: rgba(214, 95, 134, 0.25);
+}
+
+[data-shrine="essays"] {
+  --shrine-accent: #2f8f7f;
+  --shrine-deep: #246c61;
+  --shrine-soft: rgba(47, 143, 127, 0.14);
+  --shrine-glow: rgba(47, 143, 127, 0.24);
+}
+
+[data-shrine="comics"] {
+  --shrine-accent: #d49b26;
+  --shrine-deep: #936714;
+  --shrine-soft: rgba(212, 155, 38, 0.18);
+  --shrine-glow: rgba(212, 155, 38, 0.3);
+}
+
+[data-shrine="ai-stories"] {
+  --shrine-accent: #7f6ee7;
+  --shrine-deep: #5546ac;
+  --shrine-soft: rgba(127, 110, 231, 0.15);
+  --shrine-glow: rgba(127, 110, 231, 0.25);
 }
 
 * {
@@ -567,25 +606,98 @@ a.story-card:focus-visible {
 }
 
 .category-grid a {
+  --tile-accent: var(--alo-gold);
+  --tile-deep: var(--alo-gold-dark);
+  --tile-soft: rgba(200, 164, 93, 0.16);
+  --tile-glow: rgba(200, 164, 93, 0.24);
+  position: relative;
   display: grid;
   min-height: 150px;
   place-items: end start;
   padding: 18px;
   border: 1px solid rgba(107, 78, 46, 0.18);
   border-radius: 8px;
-  background: rgba(255, 251, 240, 0.5);
-  color: var(--alo-earth);
+  background:
+    linear-gradient(145deg, rgba(255, 251, 240, 0.76), var(--tile-soft)),
+    rgba(255, 251, 240, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 251, 240, 0.34);
+  color: var(--tile-deep);
   font-family: var(--font-display);
   font-size: 1.35rem;
-  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  overflow: hidden;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.category-grid a::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 251, 240, 0.94) 0 18%, transparent 20%),
+    var(--tile-accent);
+  box-shadow: 0 12px 28px var(--tile-glow);
+  opacity: 0.9;
+}
+
+.category-grid a::after {
+  content: "";
+  position: absolute;
+  inset: auto -16px -20px auto;
+  width: 92px;
+  height: 92px;
+  border: 1px solid color-mix(in srgb, var(--tile-accent) 48%, transparent);
+  border-radius: 50%;
+  opacity: 0.45;
+}
+
+.category-grid a[data-shrine="stories"] {
+  --tile-accent: #c86f4a;
+  --tile-deep: #8f432d;
+  --tile-soft: rgba(200, 111, 74, 0.16);
+  --tile-glow: rgba(200, 111, 74, 0.28);
+}
+
+.category-grid a[data-shrine="poems"] {
+  --tile-accent: #d65f86;
+  --tile-deep: #97405d;
+  --tile-soft: rgba(214, 95, 134, 0.15);
+  --tile-glow: rgba(214, 95, 134, 0.25);
+}
+
+.category-grid a[data-shrine="essays"] {
+  --tile-accent: #2f8f7f;
+  --tile-deep: #246c61;
+  --tile-soft: rgba(47, 143, 127, 0.14);
+  --tile-glow: rgba(47, 143, 127, 0.24);
+}
+
+.category-grid a[data-shrine="comics"] {
+  --tile-accent: #d49b26;
+  --tile-deep: #936714;
+  --tile-soft: rgba(212, 155, 38, 0.18);
+  --tile-glow: rgba(212, 155, 38, 0.3);
+}
+
+.category-grid a[data-shrine="ai-stories"] {
+  --tile-accent: #7f6ee7;
+  --tile-deep: #5546ac;
+  --tile-soft: rgba(127, 110, 231, 0.15);
+  --tile-glow: rgba(127, 110, 231, 0.25);
 }
 
 .category-grid a:hover,
 .category-grid a:focus-visible,
 .category-grid a.is-active {
-  background: rgba(200, 164, 93, 0.14);
-  border-color: rgba(143, 107, 45, 0.44);
+  background:
+    linear-gradient(145deg, rgba(255, 251, 240, 0.88), var(--tile-soft)),
+    rgba(255, 251, 240, 0.72);
+  border-color: color-mix(in srgb, var(--tile-accent) 58%, rgba(107, 78, 46, 0.22));
   color: var(--alo-black);
+  box-shadow: 0 16px 34px rgba(30, 27, 46, 0.1), 0 0 0 4px var(--tile-soft);
 }
 
 .category-grid a:focus-visible {
@@ -738,9 +850,42 @@ a.story-card:focus-visible {
   min-height: 100vh;
   padding: 3rem 0 4rem;
   background:
-    radial-gradient(circle at 8% 12%, rgba(200, 164, 93, 0.16), transparent 32%),
-    radial-gradient(circle at 88% 8%, rgba(30, 27, 46, 0.08), transparent 36%),
+    radial-gradient(circle at 8% 12%, var(--shrine-glow), transparent 32%),
+    radial-gradient(circle at 88% 8%, var(--shrine-soft), transparent 36%),
     var(--alo-paper);
+}
+
+.collection-shell .section-block {
+  border-top-color: color-mix(in srgb, var(--shrine-accent) 28%, rgba(107, 78, 46, 0.16));
+}
+
+.collection-shell .eyebrow,
+.collection-meta {
+  color: var(--shrine-deep);
+}
+
+.collection-shell .story-card {
+  border-color: color-mix(in srgb, var(--shrine-accent) 26%, rgba(107, 78, 46, 0.16));
+  background:
+    linear-gradient(150deg, rgba(255, 251, 240, 0.72), var(--shrine-soft)),
+    rgba(255, 251, 240, 0.56);
+}
+
+.collection-shell .story-card:hover,
+.collection-shell .story-card:focus-visible {
+  border-color: color-mix(in srgb, var(--shrine-accent) 56%, rgba(107, 78, 46, 0.18));
+  box-shadow: 0 16px 34px rgba(30, 27, 46, 0.1), 0 0 0 4px var(--shrine-soft);
+}
+
+.collection-shell .text-button {
+  border-color: color-mix(in srgb, var(--shrine-accent) 70%, rgba(107, 78, 46, 0.18));
+  background: var(--shrine-deep);
+}
+
+.collection-shell .text-button:hover,
+.collection-shell .text-button:focus-visible {
+  background: var(--shrine-accent);
+  border-color: var(--shrine-accent);
 }
 
 .collection-hero h1 {

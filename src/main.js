@@ -168,6 +168,17 @@ const setAppLoading = (isLoading, message = "Opening the shrine...") => {
   appLoading.classList.toggle("hidden", !isLoading);
 };
 
+const withStartupTimeout = (promise, label, timeoutMs = 5500) =>
+  Promise.race([
+    promise,
+    new Promise((resolve) => {
+      window.setTimeout(() => {
+        console.warn(`${label} took too long during startup. Continuing without blocking the shrine.`);
+        resolve(null);
+      }, timeoutMs);
+    }),
+  ]);
+
 const setAuthSubmitting = (isSubmitting, message = "àlọ́") => {
   authSubmit.disabled = isSubmitting;
   authSubmit.classList.toggle("is-loading", isSubmitting);
@@ -2851,22 +2862,25 @@ videoModal?.addEventListener("click", (event) => {
 document.body.style.overflowY = "hidden";
 const bootstrapApp = async () => {
   setAppLoading(true, "Opening the shrine...");
-  applyBaseShareMetadata();
-  renderAuthMode();
-  syncSidebarPanelsForViewport();
-  await authActions.initializeSessionGuard();
-  await authActions.enforceSessionPolicy();
-
-  const params = new URLSearchParams(window.location.search);
-  const initialStoryId = getStoryIdFromPath() || params.get("story");
-  const categoryFromUrl = params.get("category");
-  const normalizedCategory = categoryFromUrl && shrineFilters[categoryFromUrl] ? categoryFromUrl : null;
-
   try {
-    await Promise.all([
-      renderFeaturedStories(normalizedCategory || "all"),
-      renderScreenPreviews(),
-      initSession(),
+    applyBaseShareMetadata();
+    renderAuthMode();
+    syncSidebarPanelsForViewport();
+
+    await Promise.allSettled([
+      withStartupTimeout(authActions.initializeSessionGuard(), "Session guard"),
+      withStartupTimeout(authActions.enforceSessionPolicy(), "Session policy"),
+    ]);
+
+    const params = new URLSearchParams(window.location.search);
+    const initialStoryId = getStoryIdFromPath() || params.get("story");
+    const categoryFromUrl = params.get("category");
+    const normalizedCategory = categoryFromUrl && shrineFilters[categoryFromUrl] ? categoryFromUrl : null;
+
+    await Promise.allSettled([
+      withStartupTimeout(renderFeaturedStories(normalizedCategory || "all"), "Featured offerings"),
+      withStartupTimeout(renderScreenPreviews(), "Shrine Screen previews"),
+      withStartupTimeout(initSession(), "Session restore"),
     ]);
 
     if (initialStoryId) {
@@ -2874,14 +2888,17 @@ const bootstrapApp = async () => {
       content?.classList.remove("hidden");
       content?.classList.add("visible");
       document.body.style.overflowY = "auto";
-      await openStory(initialStoryId, { updateUrl: !getStoryIdFromPath() });
+      await withStartupTimeout(openStory(initialStoryId, { updateUrl: !getStoryIdFromPath() }), "Initial story");
     } else if (normalizedCategory) {
       hero?.classList.add("lifted");
       content?.classList.remove("hidden");
       content?.classList.add("visible");
       document.body.style.overflowY = "auto";
-      await showView("home", "#explore");
+      await withStartupTimeout(showView("home", "#explore"), "Category view");
     }
+  } catch (error) {
+    console.error("Error during app startup:", error);
+    window.__aloStartupFallback?.(error);
   } finally {
     setAppLoading(false);
   }

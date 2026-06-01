@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const SITE_URL = "https://aloshrine.ink";
 const SITEMAP_PATH = "public/sitemap.xml";
 const today = new Date().toISOString().slice(0, 10);
+const postPathPattern = /^\/(?:stories|poems|essays|comics|ai-stories)\/[^/]+\/[^/]+$/;
 
 const staticPages = [
   { path: "/", priority: "1.0" },
@@ -56,6 +57,29 @@ const formatUrl = ({ path, lastmod = today, priority = "0.7", changefreq = "week
     <priority>${priority}</priority>
   </url>`;
 
+const getExistingDynamicUrls = () => {
+  if (!existsSync(SITEMAP_PATH)) return [];
+
+  const xml = readFileSync(SITEMAP_PATH, "utf8");
+  return [...xml.matchAll(/<url>[\s\S]*?<\/url>/g)]
+    .map((match) => {
+      const block = match[0];
+      const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1];
+      const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || today;
+      const priority = block.match(/<priority>([^<]+)<\/priority>/)?.[1] || "0.7";
+      const changefreq = block.match(/<changefreq>([^<]+)<\/changefreq>/)?.[1] || "weekly";
+      if (!loc) return null;
+
+      try {
+        const path = new URL(loc).pathname;
+        return postPathPattern.test(path) ? { path, lastmod, priority, changefreq } : null;
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+};
+
 const getPublishedPosts = async () => {
   loadLocalEnv();
 
@@ -86,15 +110,18 @@ const getPublishedPosts = async () => {
 };
 
 const posts = await getPublishedPosts();
+const dynamicUrls = posts.length
+  ? posts.map((post) =>
+      formatUrl({
+        path: getPostPath(post),
+        lastmod: (post.created_at || today).slice(0, 10),
+        priority: "0.7",
+      }),
+    )
+  : getExistingDynamicUrls().map((url) => formatUrl(url));
 const urls = [
   ...staticPages.map((page) => formatUrl({ ...page, lastmod: today })),
-  ...posts.map((post) =>
-    formatUrl({
-      path: getPostPath(post),
-      lastmod: (post.created_at || today).slice(0, 10),
-      priority: "0.7",
-    }),
-  ),
+  ...dynamicUrls,
 ];
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
