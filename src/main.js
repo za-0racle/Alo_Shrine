@@ -30,6 +30,8 @@ const authToggle = document.querySelector(".auth-toggle");
 // J04. Navigation and view elements.
 const writeButton = document.querySelector("#write .text-button");
 const navAuthTrigger = document.querySelector("#nav-auth-trigger");
+const navNotifications = document.querySelector("#nav-notifications");
+const notificationCount = document.querySelector("#notification-count");
 const navDashboard = document.querySelector("#nav-dashboard");
 const navAdmin = document.querySelector("#nav-admin-link");
 const goHome = document.querySelector("#go-home");
@@ -43,8 +45,10 @@ const adminView = document.querySelector("#admin-view");
 const readerView = document.querySelector("#reader-view");
 const scrollView = document.querySelector("#scroll-view");
 const writerProfileView = document.querySelector("#writer-profile-view");
+const communityView = document.querySelector("#community-view");
 const logoutWriterBtn = document.querySelector("#logout-writer");
 const exitOracleBtn = document.querySelector("#exit-oracle");
+const exitCommunityBtn = document.querySelector("#exit-community");
 const navReaderProfile = document.querySelector("#nav-reader-profile");
 const exitScrollBtn = document.querySelector("#exit-scroll");
 const oracleContentList = document.querySelector("#oracle-content-list");
@@ -91,6 +95,17 @@ const videoModal = document.querySelector("#video-modal");
 const videoPlayerContainer = document.querySelector("#video-player-container");
 const closeVideoBtn = document.querySelector("#close-video");
 const dashboardTabs = document.querySelectorAll(".tab-btn");
+
+const setDashboardTab = (tabName) => {
+  dashboardTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
+  const showingVisuals = tabName === "visual";
+  const showingSagas = tabName === "sagas";
+  writerPostsGrid?.classList.toggle("hidden", showingVisuals || showingSagas);
+  writerPostsLabel?.classList.toggle("hidden", showingVisuals || showingSagas);
+  document.querySelector("#visual-visions-section")?.classList.toggle("hidden", !showingVisuals);
+  communalSagasSection?.classList.toggle("hidden", !showingSagas);
+};
+
 const visualSubmissionArea = document.querySelector("#visual-submission-area");
 const submitVisionBtn = document.querySelector("#submit-vision");
 const visualTitle = document.querySelector("#visual-title");
@@ -120,12 +135,58 @@ const seriesTitle = document.querySelector("#series-title");
 const episodeTitle = document.querySelector("#episode-title");
 const episodeNumber = document.querySelector("#episode-number");
 const releaseCadence = document.querySelector("#release-cadence");
+const communalSaga = document.querySelector("#communal-saga");
+const sagaRules = document.querySelector("#saga-rules");
 const textColor = document.querySelector("#text-color");
 const toolbarButtons = document.querySelectorAll("[data-command]");
 const addLinkBtn = document.querySelector("#add-link");
 const addImageBtn = document.querySelector("#add-image");
 const addCoverBtn = document.querySelector("#add-cover");
 const addYoutubeBtn = document.querySelector("#add-youtube");
+const collaborativeSagasList = document.querySelector("#collaborative-sagas-list");
+const sagaApprovalsSection = document.querySelector("#saga-approvals-section");
+const sagaApplicationsList = document.querySelector("#saga-applications-list");
+const communalSagasSection = document.querySelector("#communal-sagas-section");
+const writerSagasGrid = document.querySelector("#writer-sagas-grid");
+const sagaDashboardStartBtn = document.querySelector("#saga-dashboard-start");
+const sagaDashboardContributeBtn = document.querySelector("#saga-dashboard-contribute");
+const sagaApplicationModal = document.querySelector("#saga-application-modal");
+const sagaApplicationForm = document.querySelector("#saga-application-form");
+const sagaApplicationTitle = document.querySelector("#saga-application-title");
+const sagaApplicationContent = document.querySelector("#saga-application-content");
+const sagaApplicationContext = document.querySelector("#saga-application-context");
+const submitSagaApplicationBtn = document.querySelector("#submit-saga-application");
+const closeSagaApplicationModalBtn = document.querySelector("#close-saga-application-modal");
+const cancelSagaApplicationBtn = document.querySelector("#cancel-saga-application");
+const sparkModal = document.querySelector("#spark-modal");
+const sparkForm = document.querySelector("#spark-form");
+const submitSparkBtn = document.querySelector("#submit-spark");
+const closeSparkModalBtn = document.querySelector("#close-spark-modal");
+const cancelSparkFormBtn = document.querySelector("#cancel-spark-form");
+const sagaReviewModal = document.querySelector("#saga-review-modal");
+const sagaReviewTitle = document.querySelector("#saga-review-title");
+const sagaReviewTitleInput = document.querySelector("#saga-review-title-input");
+const sagaReviewMeta = document.querySelector("#saga-review-meta");
+const sagaReviewContent = document.querySelector("#saga-review-content");
+const closeSagaReviewModalBtn = document.querySelector("#close-saga-review-modal");
+const acceptSagaApplicationBtn = document.querySelector("#accept-saga-application");
+const releaseSagaApplicationBtn = document.querySelector("#release-saga-application");
+const notificationsModal = document.querySelector("#notifications-modal");
+const closeNotificationsModalBtn = document.querySelector("#close-notifications-modal");
+const notificationsList = document.querySelector("#notifications-list");
+const notificationPreferencesForm = document.querySelector("#notification-preferences-form");
+const notificationPreferenceInputs = document.querySelectorAll("[data-notification-pref]");
+const markNotificationsReadBtn = document.querySelector("#mark-notifications-read");
+const saveNotificationPreferencesBtn = document.querySelector("#save-notification-preferences");
+const readerLogoutBtn = document.querySelector("#reader-logout");
+const readerSettingsBtn = document.querySelector("#reader-settings");
+const sagaContributionPanel = document.querySelector("#saga-contribution-panel");
+const sagaContributionList = document.querySelector("#saga-contribution-list");
+const communalSagaModal = document.querySelector("#communal-saga-modal");
+const sidebarCommunalSagaBtn = document.querySelector("#sidebar-communal-saga");
+const closeCommunalSagaModalBtn = document.querySelector("#close-communal-saga-modal");
+const startCommunalSagaBtn = document.querySelector("#communal-saga-start-btn");
+const contributeCommunalSagaBtn = document.querySelector("#communal-saga-contribute-btn");
 
 let isSignUpMode = true;
 let currentEditingPostId = null;
@@ -134,6 +195,10 @@ let currentEditingVisionId = null;
 let currentOpenPostId = null;
 let currentOpenPostTitle = "";
 let currentOpenPost = null;
+let currentSagaApplicationSeries = null;
+let currentSagaReviewApplication = null;
+let writerSagaProfilesById = new Map();
+let writerSagaSeriesById = new Map();
 let publicOfferingsCache = null;
 let activeShrineFilter = "all";
 let selectedProfileAvatarDataUrl = "";
@@ -916,9 +981,10 @@ const showView = async (viewName, targetSelector = "#home") => {
   const showingScreen = viewName === "screen";
   const showingScroll = viewName === "scroll";
   const showingWriterProfile = viewName === "writer-profile";
+  const showingCommunity = viewName === "community";
 
   publicViews.forEach((view) =>
-    view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen || showingScroll || showingWriterProfile),
+    view.classList.toggle("hidden", showingDashboard || showingAdmin || showingScreen || showingScroll || showingWriterProfile || showingCommunity),
   );
   dashboardView.classList.toggle("hidden", !showingDashboard);
   adminView.classList.toggle("hidden", !showingAdmin);
@@ -927,6 +993,7 @@ const showView = async (viewName, targetSelector = "#home") => {
   shrineScreenView?.classList.toggle("hidden", !showingScreen);
   scrollView?.classList.toggle("hidden", !showingScroll);
   writerProfileView?.classList.toggle("hidden", !showingWriterProfile);
+  communityView?.classList.toggle("hidden", !showingCommunity);
   readerView?.classList.add("hidden");
   document.body.classList.remove("focus-mode");
   document.body.style.overflow = "auto";
@@ -984,6 +1051,13 @@ const showView = async (viewName, targetSelector = "#home") => {
 
   if (showingWriterProfile) {
     scrollToSection("#writer-profile-view");
+    document.body.classList.remove("is-view-transitioning");
+    return;
+  }
+
+  if (showingCommunity) {
+    await loadCommunityCircle();
+    scrollToSection("#community-view");
     document.body.classList.remove("is-view-transitioning");
     return;
   }
@@ -1288,6 +1362,360 @@ const getWriterVisions = async (authorId) => {
   return legacyVisions;
 };
 
+const renderWriterSagaApplications = async (applications = []) => {
+  if (!sagaApprovalsSection || !sagaApplicationsList) return;
+
+  sagaApplicationsList.replaceChildren();
+
+  if (!applications.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No chapters are waiting for your witness.";
+    sagaApplicationsList.appendChild(emptyState);
+    return;
+  }
+
+  const profilesById = await getProfileNamesById(applications.map((application) => application.applicant_id));
+  const seriesById = await getSeriesById(applications.map((application) => application.series_id));
+  writerSagaProfilesById = profilesById;
+  writerSagaSeriesById = seriesById;
+
+  applications.forEach((application) => {
+    const item = document.createElement("article");
+    const info = document.createElement("div");
+    const title = document.createElement("h4");
+    const meta = document.createElement("p");
+    const excerpt = document.createElement("p");
+    const actions = document.createElement("div");
+    const witnessButton = document.createElement("button");
+    const applicantName = getProfileDisplayName(profilesById.get(application.applicant_id), "A Scribe");
+    const sagaTitle = seriesById.get(application.series_id)?.title || "a communal saga";
+
+    item.className = "saga-application-item";
+    info.className = "item-info";
+    actions.className = "admin-actions";
+    title.textContent = application.title || "Untitled chapter";
+    meta.className = "meta-label";
+    meta.textContent = `${applicantName} offers this to ${sagaTitle}`;
+    excerpt.textContent = (application.content || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 220);
+    witnessButton.className = "feature-btn";
+    witnessButton.type = "button";
+    witnessButton.textContent = "Witness Chapter";
+
+    witnessButton.addEventListener("click", () => openSagaReviewModal(application));
+
+    info.append(title, meta, excerpt);
+    actions.append(witnessButton);
+    item.append(info, actions);
+    sagaApplicationsList.appendChild(item);
+  });
+};
+
+const renderWriterCommunalSagas = (series = []) => {
+  if (!writerSagasGrid) return;
+
+  writerSagasGrid.replaceChildren();
+
+  if (!series.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No communal sagas have been opened yet.";
+    writerSagasGrid.appendChild(emptyState);
+    return;
+  }
+
+  series.forEach((saga) => {
+    const card = document.createElement("article");
+    const title = document.createElement("h3");
+    const rules = document.createElement("p");
+    const meta = document.createElement("p");
+    const action = document.createElement("button");
+
+    card.className = "writer-saga-card";
+    title.textContent = saga.title || "Untitled communal saga";
+    rules.textContent = saga.saga_rules || saga.description || "No laws have been set for this world yet.";
+    meta.className = "meta-label";
+    meta.textContent = "Open to the circle";
+    action.className = "text-btn";
+    action.type = "button";
+    action.textContent = "Add Chapter";
+    action.addEventListener("click", () => {
+      openEditor({
+        type: "series",
+        series: saga,
+        series_id: saga.id,
+        series_order: "",
+        title: "",
+        content: "",
+      });
+    });
+
+    card.append(meta, title, rules, action);
+    const completeButton = document.createElement("button");
+    completeButton.className = "text-btn";
+    completeButton.type = "button";
+    completeButton.textContent = "Done with Saga";
+    completeButton.addEventListener("click", () => completeSaga(saga));
+    card.appendChild(completeButton);
+    writerSagasGrid.appendChild(card);
+  });
+};
+
+const loadWriterCommunalSagas = async (writerId) => {
+  if (!writerId) return [];
+
+  const { data: sagas = [], error } = await supabase
+    .from("series")
+    .select("id, title, description, saga_rules, author_id, is_communal, created_at")
+    .eq("author_id", writerId)
+    .eq("is_communal", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error loading writer communal sagas:", error);
+    return [];
+  }
+
+  return sagas;
+};
+
+const completeSaga = async (saga) => {
+  const category = prompt("Which collection should hold this completed saga? story, poem, essay, comic, folklore, or ai-story", "story")?.trim().toLowerCase();
+  const allowed = ["story", "poem", "essay", "comic", "folklore", "ai-story", "audio-story", "narrative"];
+
+  if (!category) return;
+  if (!allowed.includes(category)) {
+    alert("Please choose one of the shrine collections.");
+    return;
+  }
+
+  const { error: postsError } = await supabase
+    .from("posts")
+    .update({ type: category, status: "published" })
+    .eq("series_id", saga.id);
+
+  if (postsError) {
+    alert("This saga could not be placed in the collection: " + postsError.message);
+    return;
+  }
+
+  let completionPayload = { is_communal: false, final_category: category, completed_at: new Date().toISOString() };
+  let { error: seriesError } = await supabase
+    .from("series")
+    .update(completionPayload)
+    .eq("id", saga.id);
+
+  while (seriesError) {
+    const missingColumn = Object.keys(completionPayload).find((column) => isMissingColumnError(seriesError, column));
+    if (!missingColumn) break;
+    const { [missingColumn]: _removed, ...nextPayload } = completionPayload;
+    completionPayload = nextPayload;
+    ({ error: seriesError } = await supabase.from("series").update(completionPayload).eq("id", saga.id));
+  }
+
+  if (seriesError) {
+    alert("The saga was published, but could not be marked complete: " + seriesError.message);
+    return;
+  }
+
+  publicOfferingsCache = null;
+  await loadWriterDashboard();
+  await renderFeaturedStories();
+};
+
+const loadWriterSagaApplications = async (writerId) => {
+  if (!writerId) return [];
+
+  const { data: applications = [], error } = await supabase
+    .from("saga_applications")
+    .select("*")
+    .eq("lead_scribe_id", writerId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (!["saga_applications"].some((table) => error.message?.toLowerCase().includes(table))) {
+      console.error("Error loading saga applications:", error);
+    }
+    return [];
+  }
+
+  return applications;
+};
+
+const defaultNotificationPreferences = {
+  notify_stories: true,
+  notify_poems: true,
+  notify_sagas: true,
+  notify_sparks: true,
+};
+
+const renderNotificationPreferences = (preferences = defaultNotificationPreferences) => {
+  notificationPreferenceInputs.forEach((input) => {
+    input.checked = preferences[input.dataset.notificationPref] !== false;
+  });
+};
+
+const loadNotificationPreferences = async (userId) => {
+  if (!userId) return defaultNotificationPreferences;
+
+  const { data, error } = await supabase
+    .from("notification_preferences")
+    .select("notify_stories, notify_poems, notify_sagas, notify_sparks")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Notification preferences are not available yet:", error);
+    return defaultNotificationPreferences;
+  }
+
+  return { ...defaultNotificationPreferences, ...(data || {}) };
+};
+
+const saveNotificationPreferences = async (event) => {
+  event.preventDefault();
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  const payload = { user_id: user.id };
+  notificationPreferenceInputs.forEach((input) => {
+    payload[input.dataset.notificationPref] = input.checked;
+  });
+
+  if (saveNotificationPreferencesBtn) {
+    saveNotificationPreferencesBtn.disabled = true;
+    saveNotificationPreferencesBtn.textContent = "Saving...";
+  }
+
+  const { error } = await supabase
+    .from("notification_preferences")
+    .upsert([payload], { onConflict: "user_id" });
+
+  if (saveNotificationPreferencesBtn) {
+    saveNotificationPreferencesBtn.disabled = false;
+    saveNotificationPreferencesBtn.textContent = "Save Notices";
+  }
+
+  if (error) {
+    alert("Your notice preferences could not be saved: " + error.message);
+    return;
+  }
+
+  alert("Your shrine notices have been updated.");
+};
+
+const renderNotifications = (notifications = []) => {
+  if (!notificationsList) return;
+
+  notificationsList.replaceChildren();
+
+  if (!notifications.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No notices have reached your shrine yet.";
+    notificationsList.appendChild(emptyState);
+    return;
+  }
+
+  notifications.forEach((notice) => {
+    const item = document.createElement("article");
+    const title = document.createElement("h4");
+    const body = document.createElement("p");
+    const date = document.createElement("span");
+
+    item.className = "notification-item";
+    item.classList.toggle("is-unread", !notice.is_read);
+    title.textContent = notice.title || "A signal from the shrine";
+    body.textContent = notice.body || "";
+    date.className = "meta-label";
+    date.textContent = notice.created_at ? new Date(notice.created_at).toLocaleString() : "";
+
+    item.append(title, body, date);
+    notificationsList.appendChild(item);
+  });
+};
+
+const loadNotifications = async (userId) => {
+  if (!userId) return [];
+
+  const { data: notifications = [], error } = await supabase
+    .from("shrine_notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error("Notifications are not available yet:", error);
+    return [];
+  }
+
+  return notifications;
+};
+
+async function refreshNotificationCount(userId = "") {
+  const targetUserId = userId || (await authActions.getCurrentUser())?.id;
+  if (!targetUserId || !notificationCount) return;
+
+  const { count, error } = await supabase
+    .from("shrine_notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", targetUserId)
+    .eq("is_read", false);
+
+  if (error || count === null) {
+    notificationCount.classList.add("hidden");
+    return;
+  }
+
+  const unread = count || 0;
+  notificationCount.textContent = String(unread);
+  notificationCount.classList.toggle("hidden", unread === 0);
+}
+
+const openNotificationsModal = async () => {
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  notificationsModal?.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  renderNotifications(await loadNotifications(user.id));
+  await refreshNotificationCount(user.id);
+};
+
+const closeNotificationsModal = () => {
+  notificationsModal?.classList.add("hidden");
+  document.body.style.overflow = "";
+};
+
+const markNotificationsRead = async () => {
+  const user = await authActions.getCurrentUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("shrine_notifications")
+    .update({ is_read: true, read_at: new Date().toISOString() })
+    .eq("user_id", user.id)
+    .eq("is_read", false);
+
+  if (error) {
+    alert("The notices could not be marked read: " + error.message);
+    return;
+  }
+
+  renderNotifications(await loadNotifications(user.id));
+  await refreshNotificationCount(user.id);
+};
+
 // J11. Writer dashboard data loading.
 async function loadWriterDashboard() {
   const user = await authActions.getCurrentUser();
@@ -1336,9 +1764,13 @@ async function loadWriterDashboard() {
   }
 
   const visions = await getWriterVisions(user.id);
+  const sagaApplications = await loadWriterSagaApplications(user.id);
+  const communalSagas = await loadWriterCommunalSagas(user.id);
 
   renderWriterPosts(posts);
   renderWriterVisions(visions);
+  renderWriterCommunalSagas(communalSagas);
+  await renderWriterSagaApplications(sagaApplications);
   document.querySelector("#stat-works").textContent = posts.length;
   document.querySelector("#stat-visions").textContent = visions.length;
   document.querySelector("#stat-likes").textContent = posts.reduce(
@@ -1365,6 +1797,8 @@ async function initSession() {
     navReaderProfile?.classList.add("hidden");
     navAdmin.classList.add("hidden");
     navAuthTrigger.classList.remove("hidden");
+    navNotifications?.classList.add("hidden");
+    notificationCount?.classList.add("hidden");
     return null;
   }
 
@@ -1374,6 +1808,7 @@ async function initSession() {
   navReaderProfile?.classList.toggle("hidden", isWriterUser(user));
   navAdmin.classList.toggle("hidden", !isAdminUser(user));
   navAuthTrigger.classList.add("hidden");
+  await refreshNotificationCount(user.id);
   return user;
 }
 
@@ -1534,6 +1969,152 @@ async function loadOracleRegistry() {
   });
 }
 
+const createOracleSpark = async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const durationHours = Math.max(1, Number(formData.get("duration_hours") || 48));
+  const startsAt = new Date().toISOString();
+  const endsAt = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
+
+  if (submitSparkBtn) {
+    submitSparkBtn.disabled = true;
+    submitSparkBtn.textContent = "Lighting...";
+  }
+
+  const { error } = await supabase.from("sparks").insert([
+    {
+      title: String(formData.get("title") || "").trim(),
+      description: String(formData.get("description") || "").trim(),
+      starts_at: startsAt,
+      ends_at: endsAt,
+    },
+  ]);
+
+  if (error) {
+    alert("The Spark could not be lit: " + error.message);
+    if (submitSparkBtn) {
+      submitSparkBtn.disabled = false;
+      submitSparkBtn.textContent = "Light the Fire";
+    }
+    return;
+  }
+
+  form.reset();
+  if (submitSparkBtn) {
+    submitSparkBtn.disabled = false;
+    submitSparkBtn.textContent = "Light the Fire";
+  }
+  closeSparkModal();
+  await loadOracleSparks();
+};
+
+async function loadOracleSparks() {
+  oracleContentList.innerHTML = "";
+  if (stageTitle) stageTitle.textContent = "Midnight Fires";
+
+  const actionBar = document.createElement("div");
+  const lightButton = document.createElement("button");
+  actionBar.className = "oracle-action-bar";
+  lightButton.className = "cta-gold";
+  lightButton.type = "button";
+  lightButton.textContent = "Light a Spark";
+  lightButton.addEventListener("click", openSparkModal);
+  actionBar.appendChild(lightButton);
+  oracleContentList.appendChild(actionBar);
+
+  const { data: sparks = [], error } = await supabase
+    .from("sparks")
+    .select("*")
+    .order("starts_at", { ascending: false })
+    .limit(12);
+
+  if (error) {
+    if (stageCount) stageCount.textContent = "Midnight Fires need the community rituals schema.";
+    console.error("Error loading oracle sparks:", error);
+    return;
+  }
+
+  if (stageCount) stageCount.textContent = `${sparks.length} spark${sparks.length === 1 ? "" : "s"} remembered.`;
+
+  sparks.forEach((spark) => {
+    const item = document.createElement("article");
+    const info = document.createElement("div");
+    const title = document.createElement("h4");
+    const meta = document.createElement("span");
+
+    item.className = "oracle-item";
+    info.className = "item-info";
+    title.textContent = spark.title || "Untitled Spark";
+    const active = new Date(spark.starts_at).getTime() <= Date.now() && new Date(spark.ends_at).getTime() >= Date.now();
+    meta.textContent = active
+      ? formatSparkCountdown(spark.ends_at)
+      : spark.ends_at && new Date(spark.ends_at).getTime() < Date.now()
+        ? "Resting in The Ashes"
+        : "Waiting to be lit";
+
+    info.append(title, meta);
+    item.appendChild(info);
+    oracleContentList.appendChild(item);
+  });
+}
+
+async function loadOracleSagaApplications() {
+  oracleContentList.innerHTML = "";
+  if (stageTitle) stageTitle.textContent = "Communal Sagas";
+
+  const { data: applications = [], error } = await supabase
+    .from("saga_applications")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (stageCount) stageCount.textContent = "Communal Sagas need the community rituals schema.";
+    console.error("Error loading oracle saga applications:", error);
+    return;
+  }
+
+  const profilesById = await getProfileNamesById([
+    ...applications.map((application) => application.applicant_id),
+    ...applications.map((application) => application.lead_scribe_id),
+  ]);
+  const seriesById = await getSeriesById(applications.map((application) => application.series_id));
+
+  if (stageCount) {
+    stageCount.textContent = applications.length
+      ? `${applications.length} chapter${applications.length === 1 ? "" : "s"} awaiting a Lead Scribe.`
+      : "No communal chapters are waiting.";
+  }
+
+  if (!applications.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No communal chapters are waiting.";
+    oracleContentList.appendChild(emptyState);
+    return;
+  }
+
+  applications.forEach((application) => {
+    const item = document.createElement("article");
+    const info = document.createElement("div");
+    const title = document.createElement("h4");
+    const meta = document.createElement("span");
+    const applicantName = getProfileDisplayName(profilesById.get(application.applicant_id), "A Scribe");
+    const leadName = getProfileDisplayName(profilesById.get(application.lead_scribe_id), "A Lead Scribe");
+    const sagaTitle = seriesById.get(application.series_id)?.title || "a communal saga";
+
+    item.className = "oracle-item";
+    info.className = "item-info";
+    title.textContent = application.title || "Untitled chapter";
+    meta.textContent = `${applicantName} offered this to ${sagaTitle}; ${leadName} must approve it.`;
+
+    info.append(title, meta);
+    item.appendChild(info);
+    oracleContentList.appendChild(item);
+  });
+}
+
 const updateOracleStatus = async (postId, status) => {
   const { error } = await oracleActions.updateStatus(postId, status);
 
@@ -1556,6 +2137,8 @@ const resetEditor = (post = null) => {
   episodeTitle.value = getStoryFormat(post) === "series" ? post?.title || "" : "";
   episodeNumber.value = post?.series_order || "";
   releaseCadence.value = post?.release_cadence || "weekly";
+  if (communalSaga) communalSaga.checked = Boolean(post?.series?.is_communal);
+  if (sagaRules) sagaRules.value = post?.series?.saga_rules || "";
   postContent.innerHTML = normalizeStoredContent(post?.content || "");
 };
 
@@ -1679,10 +2262,15 @@ const saveOffering = async (status) => {
       series_id: series.id,
       series_order: episodeNo,
     });
-  }
 
-  if (status === "published") {
-    console.log("Attempting to offer this payload to the shrine:", payload);
+    const communalError = await updateSeriesCommunalState(series.id, Boolean(communalSaga?.checked), sagaRules?.value.trim() || "", user.id);
+    if (communalError) {
+      publishBtn.disabled = false;
+      saveDraftBtn.disabled = false;
+      actionButton.textContent = originalLabel;
+      alert("The communal saga state could not be saved: " + communalError.message);
+      return;
+    }
   }
 
   const { error } = currentEditingPostId
@@ -1771,6 +2359,7 @@ enterBtn?.addEventListener("click", () => {
 
 // J18. Auth modal event listeners.
 navAuthTrigger?.addEventListener("click", openAuthModal);
+navNotifications?.addEventListener("click", openNotificationsModal);
 closeAuthBtn?.addEventListener("click", closeAuthModal);
 authModal?.addEventListener("click", (event) => {
   if (event.target === authModal) closeAuthModal();
@@ -1851,6 +2440,11 @@ publicNavLinks.forEach((link) => {
     event.preventDefault();
     const filterName = link.getAttribute("href")?.replace("#", "");
 
+    if (link.getAttribute("href") === "#community-view") {
+      showView("community");
+      return;
+    }
+
     if (shrineFilters[filterName]) {
       renderFeaturedStories(filterName).then(() => showView("home", "#explore"));
       return;
@@ -1878,6 +2472,11 @@ exitScrollBtn?.addEventListener("click", (event) => {
   showView("home", "#home");
 });
 
+exitCommunityBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  showView("home", "#home");
+});
+
 logoutWriterBtn?.addEventListener("click", async () => {
   setAppLoading(true, "Closing your inkwell...");
 
@@ -1898,6 +2497,8 @@ const modals = {
   settings: document.querySelector("#settings-modal"),
   vision: document.querySelector("#add-vision-modal"),
   wisdom: document.querySelector("#add-wisdom-modal"),
+  notifications: document.querySelector("#notifications-modal"),
+  communalSaga: document.querySelector("#communal-saga-modal"),
 };
 
 const openModal = (modal) => {
@@ -1926,6 +2527,9 @@ document.querySelector("#close-shrine-modal")?.addEventListener("click", () => c
 document.querySelector("#close-shrine-form")?.addEventListener("click", () => closeModal(modals.shrine));
 document.querySelector("#close-settings-modal")?.addEventListener("click", () => closeModal(modals.settings));
 document.querySelector("#close-settings-form")?.addEventListener("click", () => closeModal(modals.settings));
+closeNotificationsModalBtn?.addEventListener("click", closeNotificationsModal);
+notificationPreferencesForm?.addEventListener("submit", saveNotificationPreferences);
+markNotificationsReadBtn?.addEventListener("click", markNotificationsRead);
 document.querySelector("#close-vision-modal")?.addEventListener("click", () => closeModal(modals.vision));
 document.querySelector("#close-vision-form")?.addEventListener("click", () => closeModal(modals.vision));
 document.querySelector("#close-wisdom-modal")?.addEventListener("click", () => closeModal(modals.wisdom));
@@ -1966,6 +2570,9 @@ sidebarLinks.forEach((link) => {
     if (section === "profile") {
       openModal(modals.shrine);
     } else if (section === "settings") {
+      authActions.getCurrentUser().then((user) => {
+        if (user) loadNotificationPreferences(user.id).then(renderNotificationPreferences);
+      });
       openModal(modals.settings);
     }
   });
@@ -2002,6 +2609,16 @@ oracleTabs.forEach((tab) => {
 
     if (view === "featured") {
       await loadOracleFeatured();
+      return;
+    }
+
+    if (view === "sparks") {
+      await loadOracleSparks();
+      return;
+    }
+
+    if (view === "sagas") {
+      await loadOracleSagaApplications();
       return;
     }
 
@@ -2414,6 +3031,7 @@ async function openStory(postId, options = {}) {
   shrineScreenView?.classList.add("hidden");
   scrollView?.classList.add("hidden");
   writerProfileView?.classList.add("hidden");
+  communityView?.classList.add("hidden");
   document.querySelector("#reader-title").textContent = "Opening story...";
   document.querySelector("#reader-author").textContent = "";
   document.querySelector("#reader-category").textContent = "";
@@ -2473,9 +3091,35 @@ window.addEventListener("popstate", async () => {
 
   document.querySelector("#reader-view")?.classList.add("hidden");
   publicViews.forEach((view) => view.classList.remove("hidden"));
+  communityView?.classList.add("hidden");
   document.body.classList.remove("focus-mode");
   currentOpenPostId = null;
   currentOpenPost = null;
+});
+
+readerLogoutBtn?.addEventListener("click", async () => {
+  setAppLoading(true, "Closing your scroll...");
+
+  try {
+    await authActions.signOut();
+    await initSession();
+    await showView("home", "#home");
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    setAppLoading(false);
+  }
+});
+
+readerSettingsBtn?.addEventListener("click", async () => {
+  const user = await authActions.getCurrentUser();
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  renderNotificationPreferences(await loadNotificationPreferences(user.id));
+  openModal(modals.settings);
 });
 
 // J22. Focus mode toggle.
@@ -2484,11 +3128,15 @@ document.querySelector("#toggle-focus")?.addEventListener("click", () => {
 });
 
 document.querySelector("#add-bookmark")?.addEventListener("click", toggleBookmark);
+document.querySelector(".libation-btn")?.addEventListener("click", () => {
+  pourLibation(currentOpenPost?.author_id);
+});
 
 // J23. Reader exit controls.
 document.querySelector("#exit-reader")?.addEventListener("click", () => {
   document.querySelector("#reader-view")?.classList.add("hidden");
   publicViews.forEach((view) => view.classList.remove("hidden"));
+  communityView?.classList.add("hidden");
   document.body.classList.remove("focus-mode");
   currentOpenPostId = null;
   currentOpenPost = null;
@@ -2518,6 +3166,35 @@ const getMediaType = (url) => {
   }
 
   return "cinematic_still";
+};
+
+const updateSeriesCommunalState = async (seriesId, isCommunal, rules = "", leadScribeId = "") => {
+  if (!seriesId) return null;
+
+  let payload = { is_communal: isCommunal, saga_rules: rules };
+  let { error } = await supabase
+    .from("series")
+    .update(payload)
+    .eq("id", seriesId);
+
+  while (error) {
+    const missingColumn = Object.keys(payload).find((column) => isMissingColumnError(error, column));
+    if (!missingColumn) return error;
+    const { [missingColumn]: _removed, ...nextPayload } = payload;
+    payload = nextPayload;
+    ({ error } = await supabase.from("series").update(payload).eq("id", seriesId));
+  }
+
+  if (isCommunal && leadScribeId) {
+    const { error: collaboratorError } = await supabase.from("saga_collaborators").upsert(
+      [{ series_id: seriesId, scribe_id: leadScribeId, role: "lead" }],
+      { onConflict: "series_id,scribe_id" },
+    );
+
+    if (collaboratorError) console.error("Lead Scribe could not be recorded as a saga collaborator:", collaboratorError);
+  }
+
+  return null;
 };
 
 const getYoutubeCreatorName = async (url) => {
@@ -2773,14 +3450,29 @@ async function loadShrineScreen() {
 
 dashboardTabs.forEach((button) => {
   button.addEventListener("click", () => {
-    dashboardTabs.forEach((tab) => tab.classList.remove("active"));
-    button.classList.add("active");
-
-    const showingVisuals = button.dataset.tab === "visual";
-    writerPostsGrid.classList.toggle("hidden", showingVisuals);
-    writerPostsLabel?.classList.toggle("hidden", showingVisuals);
-    document.querySelector("#visual-visions-section")?.classList.toggle("hidden", !showingVisuals);
+    setDashboardTab(button.dataset.tab);
   });
+});
+
+sagaDashboardStartBtn?.addEventListener("click", openCommunalSagaEditor);
+sagaDashboardContributeBtn?.addEventListener("click", loadSagaContributionChoices);
+sidebarCommunalSagaBtn?.addEventListener("click", () => {
+  setDashboardTab("sagas");
+  sagaContributionPanel?.classList.add("hidden");
+  openModal(modals.communalSaga);
+});
+closeCommunalSagaModalBtn?.addEventListener("click", () => closeModal(modals.communalSaga));
+startCommunalSagaBtn?.addEventListener("click", async () => {
+  closeModal(modals.communalSaga);
+  await openCommunalSagaEditor();
+});
+contributeCommunalSagaBtn?.addEventListener("click", async () => {
+  closeModal(modals.communalSaga);
+  await loadSagaContributionChoices();
+});
+
+modals.communalSaga?.addEventListener("click", (event) => {
+  if (event.target === modals.communalSaga) closeModal(modals.communalSaga);
 });
 
 submitVisionBtn?.addEventListener("click", async () => {
@@ -2864,6 +3556,695 @@ videoModal?.addEventListener("click", (event) => {
   if (event.target === videoModal) closeVideoModal();
 });
 
+const setContentFadeLoading = (element, isLoading) => {
+  element?.classList.toggle("is-loading", isLoading);
+};
+
+const formatSparkCountdown = (endsAt) => {
+  const remainingMs = new Date(endsAt).getTime() - Date.now();
+  const remainingHours = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60)));
+  return `The fire fades in ${remainingHours} hour${remainingHours === 1 ? "" : "s"}.`;
+};
+
+const getEventName = (event = {}) =>
+  event.profiles?.full_name || event.profile_name || event.name || event.actor_name || event.userName || "Someone";
+
+const getWitnessingText = (event = {}) => {
+  const name = getEventName(event);
+  const eventType = event.event_type || event.type;
+  const poeticMessage = (event.poetic_message || "").trim();
+
+  if (poeticMessage) {
+    const sentence = poeticMessage.endsWith(".") ? poeticMessage : `${poeticMessage}.`;
+    return `${name} ${sentence}`;
+  }
+
+  if (eventType === "new_story" || eventType === "new_ink") return `${name} has offered new ink to the shrine.`;
+  if (eventType === "ascension") return `${name} has ascended to the rank of Scribe.`;
+  if (eventType === "new_vision") return `${name} has shared a cinematic vision.`;
+  if (eventType === "libation") return `${name} has poured a libation.`;
+  return `${name} has moved quietly through the shrine.`;
+};
+
+const getSparkEchoAuthor = (echo = {}) =>
+  echo.profiles?.full_name || echo.profile_name || echo.name || echo.author_name || "A voice by the fire";
+
+const loadSparkEchoes = async (sparkId) => {
+  const list = document.querySelector("#spark-echoes");
+  if (!list || !sparkId) return;
+
+  setContentFadeLoading(list, true);
+  list.replaceChildren();
+
+  let { data: echoes = [], error } = await supabase
+    .from("echoes")
+    .select("*, profiles(full_name)")
+    .eq("spark_id", sparkId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    ({ data: echoes = [], error } = await supabase
+      .from("echoes")
+      .select("*")
+      .eq("spark_id", sparkId)
+      .order("created_at", { ascending: true }));
+  }
+
+  if (error) {
+    ({ data: echoes = [], error } = await supabase
+      .from("spark_echoes")
+      .select("*, profiles(full_name)")
+      .eq("spark_id", sparkId)
+      .order("created_at", { ascending: true }));
+  }
+
+  setContentFadeLoading(list, false);
+
+  if (error) {
+    console.error("Error loading spark echoes:", error);
+    list.textContent = "The echoes around this fire could not be heard.";
+    return;
+  }
+
+  if (!echoes.length) {
+    list.textContent = "No echoes have gathered around this spark yet.";
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  echoes.forEach((echo) => {
+    const item = document.createElement("article");
+    const content = document.createElement("p");
+    const author = document.createElement("span");
+
+    item.className = "spark-echo";
+    content.textContent = echo.content || echo.message || "";
+    author.textContent = getSparkEchoAuthor(echo);
+    item.append(content, author);
+    fragment.appendChild(item);
+  });
+  list.replaceChildren(fragment);
+};
+
+export async function loadMidnightFire() {
+  const firePit = document.querySelector("#active-spark");
+  if (!firePit) return null;
+
+  const now = new Date().toISOString();
+  setContentFadeLoading(firePit, true);
+
+  const { data: activeSpark, error } = await supabase
+    .from("sparks")
+    .select("*")
+    .lte("starts_at", now)
+    .gte("ends_at", now)
+    .order("starts_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  setContentFadeLoading(firePit, false);
+
+  if (error) {
+    console.error("Error loading Midnight Fire:", error);
+    firePit.innerHTML = `
+      <div class="fire-pit-inner">
+        <h2 class="font-display">The fire is difficult to read tonight.</h2>
+        <p>Return when the smoke has cleared.</p>
+      </div>
+    `;
+    return null;
+  }
+
+  if (!activeSpark) {
+    firePit.innerHTML = `
+      <div class="fire-pit-inner">
+        <h2 class="font-display">The fire is currently quiet.</h2>
+        <p>Revisit when the moon is high.</p>
+      </div>
+    `;
+    document.querySelector("#spark-echoes")?.replaceChildren();
+    return null;
+  }
+
+  firePit.innerHTML = `
+    <div class="fire-pit-inner">
+      <h2 class="font-display">${escapeHtml(activeSpark.title || "Untitled spark")}</h2>
+      <p>${escapeHtml(activeSpark.description || activeSpark.prompt || "")}</p>
+      <span class="fire-countdown">${escapeHtml(formatSparkCountdown(activeSpark.ends_at))}</span>
+    </div>
+  `;
+
+  await loadSparkEchoes(activeSpark.id);
+  return activeSpark;
+}
+
+export async function loadWitnessingFeed() {
+  const feed = document.querySelector("#witnessing-feed");
+  if (!feed) return;
+
+  setContentFadeLoading(feed, true);
+  let { data: events = [], error } = await supabase
+    .from("witness_events")
+    .select("*, profiles(full_name)")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    ({ data: events = [], error } = await supabase
+      .from("witness_events")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10));
+  }
+
+  if (!error && events.length && events.some((event) => event.user_id && !event.profiles)) {
+    const profilesById = await getProfileNamesById(events.map((event) => event.user_id));
+    events = events.map((event) => ({
+      ...event,
+      userName: getProfileDisplayName(profilesById.get(event.user_id), "Someone"),
+    }));
+  }
+
+  setContentFadeLoading(feed, false);
+  feed.replaceChildren();
+
+  if (error) {
+    console.error("Error loading witnessing feed:", error);
+    const emptyState = document.createElement("p");
+    emptyState.className = "witness-event";
+    emptyState.textContent = "The witnessing is quiet tonight.";
+    feed.appendChild(emptyState);
+    return;
+  }
+
+  if (!events.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "witness-event";
+    emptyState.textContent = "No footsteps have crossed the circle yet.";
+    feed.appendChild(emptyState);
+    return;
+  }
+
+  events.forEach((event) => {
+    const item = document.createElement("p");
+    item.className = "witness-event";
+    item.textContent = getWitnessingText(event);
+    feed.appendChild(item);
+  });
+}
+
+const loadAshesGallery = async () => {
+  const gallery = document.querySelector("#ashes-gallery");
+  if (!gallery) return;
+
+  const now = new Date().toISOString();
+  setContentFadeLoading(gallery, true);
+  const { data: ashes = [], error } = await supabase
+    .from("sparks")
+    .select("*")
+    .lt("ends_at", now)
+    .order("ends_at", { ascending: false })
+    .limit(6);
+
+  setContentFadeLoading(gallery, false);
+  gallery.replaceChildren();
+
+  if (error) {
+    console.error("Error loading Ashes:", error);
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "The ashes could not be gathered.";
+    gallery.appendChild(emptyState);
+    return;
+  }
+
+  if (!ashes.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No fires have cooled into ash yet.";
+    gallery.appendChild(emptyState);
+    return;
+  }
+
+  ashes.forEach((spark) => {
+    const card = document.createElement("article");
+    const title = document.createElement("h3");
+    const description = document.createElement("p");
+    const ended = document.createElement("p");
+
+    card.className = "ash-card";
+    title.textContent = spark.title || "Untitled spark";
+    description.textContent = spark.description || spark.prompt || "A finished circle of thought.";
+    ended.className = "meta-label";
+    ended.textContent = spark.ends_at ? new Date(spark.ends_at).toLocaleDateString() : "Archived";
+
+    card.append(title, description, ended);
+    gallery.appendChild(card);
+  });
+};
+
+const getProfileNamesById = async (ids = []) => {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (!uniqueIds.length) return new Map();
+
+  const { data: profiles = [], error } = await supabase
+    .from("profiles")
+    .select("id, full_name, pen_name, display_name_mode, username, writer_level")
+    .in("id", uniqueIds);
+
+  if (error) {
+    console.error("Error loading profile names:", error);
+    return new Map();
+  }
+
+  return new Map(profiles.map((profile) => [profile.id, profile]));
+};
+
+const getSeriesById = async (ids = []) => {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (!uniqueIds.length) return new Map();
+
+  const { data: series = [], error } = await supabase
+    .from("series")
+    .select("id, title, author_id, is_communal, saga_rules")
+    .in("id", uniqueIds);
+
+  if (error) {
+    console.error("Error loading saga series:", error);
+    return new Map();
+  }
+
+  return new Map(series.map((item) => [item.id, item]));
+};
+
+const loadCollaborativeSagas = async () => {
+  if (!collaborativeSagasList) return;
+
+  setContentFadeLoading(collaborativeSagasList, true);
+  const { data: sagas = [], error } = await supabase
+    .from("series")
+    .select("id, title, description, saga_rules, author_id, created_at")
+    .eq("is_communal", true)
+    .order("created_at", { ascending: false })
+    .limit(8);
+
+  setContentFadeLoading(collaborativeSagasList, false);
+  collaborativeSagasList.replaceChildren();
+
+  if (error) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = isMissingColumnError(error, "is_communal")
+      ? "Communal Sagas need the community rituals schema before they can open."
+      : "The communal sagas could not be gathered.";
+    collaborativeSagasList.appendChild(emptyState);
+    console.error("Error loading collaborative sagas:", error);
+    return;
+  }
+
+  if (!sagas.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No saga has opened itself to the circle yet.";
+    collaborativeSagasList.appendChild(emptyState);
+    return;
+  }
+
+  const profilesById = await getProfileNamesById(sagas.map((saga) => saga.author_id));
+
+  sagas.forEach((saga) => {
+    const card = document.createElement("article");
+    const title = document.createElement("h3");
+    const meta = document.createElement("p");
+    const description = document.createElement("p");
+    const action = document.createElement("button");
+    const leadName = getProfileDisplayName(profilesById.get(saga.author_id), "A Lead Scribe");
+
+    card.className = "saga-card";
+    title.textContent = saga.title || "Untitled communal saga";
+    meta.className = "meta-label";
+    meta.textContent = `Lead Scribe: ${leadName}`;
+    description.textContent = saga.saga_rules || saga.description || "This saga is open for another voice to carry the next chapter.";
+    action.className = "text-btn";
+    action.type = "button";
+    action.textContent = "Offer Next Chapter";
+    action.addEventListener("click", () => openSagaApplication(saga, leadName));
+
+    card.append(title, meta, description, action);
+    collaborativeSagasList.appendChild(card);
+  });
+};
+
+const loadCommunityCircle = async () => {
+  await Promise.allSettled([loadMidnightFire(), loadWitnessingFeed(), loadAshesGallery(), loadCollaborativeSagas()]);
+};
+
+const runGoldGlow = () => {
+  document.body.classList.remove("libation-accepted");
+  void document.body.offsetWidth;
+  document.body.classList.add("libation-accepted");
+  window.setTimeout(() => document.body.classList.remove("libation-accepted"), 1700);
+};
+
+const saveLibationEvent = async ({ authorId, giverId, postId, message }) => {
+  let payload = {
+    from_user_id: giverId,
+    to_user_id: authorId,
+    post_id: postId,
+    message,
+    token_count: 1,
+  };
+
+  let { error } = await supabase.from("libations").insert([payload]);
+
+  while (error) {
+    const missingColumn = Object.keys(payload).find((column) => isMissingColumnError(error, column));
+    if (!missingColumn) break;
+    const { [missingColumn]: _removed, ...nextPayload } = payload;
+    payload = nextPayload;
+    ({ error } = await supabase.from("libations").insert([payload]));
+  }
+
+  return error;
+};
+
+export async function pourLibation(authorId) {
+  if (!authorId) {
+    alert("This offering has no named scribe to receive the libation.");
+    return;
+  }
+
+  const user = await authActions.getCurrentUser();
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  const message = prompt("Leave a few words with the libation, if you wish.")?.trim() || "";
+
+  const eventError = await saveLibationEvent({
+    authorId,
+    giverId: user?.id || null,
+    postId: currentOpenPostId,
+    message,
+  });
+
+  if (eventError) {
+    alert("The libation could not be poured: " + eventError.message);
+    return;
+  }
+
+  runGoldGlow();
+}
+
+const closeSagaApplicationModal = () => {
+  sagaApplicationModal?.classList.add("hidden");
+  sagaApplicationForm?.reset();
+  currentSagaApplicationSeries = null;
+  document.body.style.overflow = "";
+};
+
+const openSparkModal = () => {
+  sparkModal?.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+};
+
+const openCommunalSagaEditor = async () => {
+  await openEditor();
+  postType.value = "series";
+  setActiveStoryFormat("series");
+  if (communalSaga) communalSaga.checked = true;
+  if (episodeNumber && !episodeNumber.value) episodeNumber.value = "1";
+  seriesTitle?.focus();
+};
+
+const loadSagaContributionChoices = async () => {
+  setDashboardTab("sagas");
+  const user = await authActions.getCurrentUser();
+  if (!sagaContributionList || !user) return;
+
+  sagaContributionPanel?.classList.remove("hidden");
+  sagaContributionList.replaceChildren();
+
+  const { data: sagas = [], error } = await supabase
+    .from("series")
+    .select("id, title, description, saga_rules, author_id, created_at")
+    .eq("is_communal", true)
+    .neq("author_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "The ongoing sagas could not be gathered.";
+    sagaContributionList.appendChild(emptyState);
+    return;
+  }
+
+  if (!sagas.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No communal sagas are open for contribution right now.";
+    sagaContributionList.appendChild(emptyState);
+    return;
+  }
+
+  const profilesById = await getProfileNamesById(sagas.map((saga) => saga.author_id));
+  sagas.forEach((saga) => {
+    const button = document.createElement("button");
+    const leadName = getProfileDisplayName(profilesById.get(saga.author_id), "A Lead Scribe");
+    button.className = "saga-choice-card";
+    button.type = "button";
+    button.innerHTML = `
+      <span class="eyebrow">Lead Scribe: ${escapeHtml(leadName)}</span>
+      <strong>${escapeHtml(saga.title || "Untitled communal saga")}</strong>
+      <small>${escapeHtml(saga.saga_rules || saga.description || "This world is waiting for another voice.")}</small>
+    `;
+    button.addEventListener("click", () => {
+      sagaContributionPanel?.classList.add("hidden");
+      openSagaApplication(saga, leadName);
+    });
+    sagaContributionList.appendChild(button);
+  });
+};
+
+const closeSparkModal = () => {
+  sparkModal?.classList.add("hidden");
+  sparkForm?.reset();
+  if (submitSparkBtn) {
+    submitSparkBtn.disabled = false;
+    submitSparkBtn.textContent = "Light the Fire";
+  }
+  document.body.style.overflow = "";
+};
+
+const closeSagaReviewModal = () => {
+  sagaReviewModal?.classList.add("hidden");
+  currentSagaReviewApplication = null;
+if (sagaReviewTitle) sagaReviewTitle.textContent = "Witness Chapter";
+  if (sagaReviewTitleInput) sagaReviewTitleInput.value = "";
+  if (sagaReviewMeta) sagaReviewMeta.textContent = "";
+  if (sagaReviewContent) sagaReviewContent.value = "";
+  document.body.style.overflow = "";
+};
+
+const openSagaReviewModal = (application) => {
+  if (!application || !sagaReviewModal) return;
+
+  const applicantName = getProfileDisplayName(writerSagaProfilesById.get(application.applicant_id), "A Scribe");
+  const sagaTitle = writerSagaSeriesById.get(application.series_id)?.title || "a communal saga";
+  currentSagaReviewApplication = application;
+
+  if (sagaReviewTitle) sagaReviewTitle.textContent = application.title || "Untitled chapter";
+  if (sagaReviewTitleInput) sagaReviewTitleInput.value = application.title || "";
+  if (sagaReviewMeta) sagaReviewMeta.textContent = `${applicantName} offers this to ${sagaTitle}.`;
+  if (sagaReviewContent) sagaReviewContent.value = (application.content || "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]*>/g, "").trim();
+
+  sagaReviewModal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+};
+
+const openSagaApplication = async (saga, leadName = "the Lead Scribe") => {
+  const user = await authActions.getCurrentUser();
+
+  if (!user) {
+    openAuthModal();
+    return;
+  }
+
+  if (!isWriterUser(user)) {
+    alert("Only Scribes can offer the next chapter of a communal saga.");
+    await showView("scroll");
+    return;
+  }
+
+  if (user.id === saga.author_id) {
+    alert("You are already the Lead Scribe of this saga. Invite the circle to carry the next turn.");
+    return;
+  }
+
+  currentSagaApplicationSeries = saga;
+  if (sagaApplicationContext) {
+    sagaApplicationContext.textContent = `Offer a chapter for "${saga.title || "this saga"}". ${leadName} will witness it before it joins the saga.`;
+  }
+  sagaApplicationModal?.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+};
+
+const submitSagaApplication = async (event) => {
+  event.preventDefault();
+
+  const user = await authActions.getCurrentUser();
+  const saga = currentSagaApplicationSeries;
+  const title = sagaApplicationTitle?.value.trim() || "";
+  const content = sagaApplicationContent?.value.trim() || "";
+
+  if (!user || !saga) {
+    closeSagaApplicationModal();
+    return;
+  }
+
+  if (!title || !content) {
+    alert("The Lead Scribe needs both a title and chapter text to witness.");
+    return;
+  }
+
+  if (submitSagaApplicationBtn) {
+    submitSagaApplicationBtn.disabled = true;
+    submitSagaApplicationBtn.textContent = "Offering...";
+  }
+
+  const payload = {
+    series_id: saga.id,
+    lead_scribe_id: saga.author_id,
+    applicant_id: user.id,
+    title,
+    content: plainTextToRichHtml(content),
+    status: "pending",
+  };
+
+  const { error } = await supabase.from("saga_applications").insert([payload]);
+
+  if (submitSagaApplicationBtn) {
+    submitSagaApplicationBtn.disabled = false;
+    submitSagaApplicationBtn.textContent = "Offer Chapter";
+  }
+
+  if (error) {
+    alert("This chapter could not be offered: " + error.message);
+    return;
+  }
+
+  closeSagaApplicationModal();
+  alert("Your chapter has been placed before the Lead Scribe.");
+};
+
+const getNextSeriesOrder = async (seriesId) => {
+  const { data: latest = [], error } = await supabase
+    .from("posts")
+    .select("series_order")
+    .eq("series_id", seriesId)
+    .order("series_order", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error("Error finding next series order:", error);
+    return 1;
+  }
+
+  return Number(latest?.[0]?.series_order || 0) + 1;
+};
+
+const approveSagaApplication = async (application) => {
+  const user = await authActions.getCurrentUser();
+  if (!user || user.id !== application.lead_scribe_id) return;
+
+  const reviewedTitle = sagaReviewTitleInput?.value.trim() || application.title;
+  const reviewedContent = sagaReviewContent?.value.trim()
+    ? plainTextToRichHtml(sagaReviewContent.value.trim())
+    : application.content;
+  const nextOrder = await getNextSeriesOrder(application.series_id);
+  const { error: postError } = await supabase.from("posts").insert([
+    {
+      author_id: application.applicant_id,
+      title: reviewedTitle,
+      content: reviewedContent,
+      type: "series",
+      status: "published",
+      series_id: application.series_id,
+      series_order: nextOrder,
+    },
+  ]);
+
+  if (postError) {
+    alert("The chapter could not join the saga: " + postError.message);
+    return;
+  }
+
+  const { error: updateError } = await supabase
+    .from("saga_applications")
+    .update({ status: "approved", title: reviewedTitle, content: reviewedContent, reviewed_at: new Date().toISOString() })
+    .eq("id", application.id);
+
+  if (updateError) {
+    alert("The chapter was published, but the application could not be marked approved: " + updateError.message);
+    return;
+  }
+
+  const { error: collaboratorError } = await supabase.from("saga_collaborators").upsert(
+    [{ series_id: application.series_id, scribe_id: application.applicant_id, role: "contributor" }],
+    { onConflict: "series_id,scribe_id" },
+  );
+
+  if (collaboratorError) console.error("Contributor could not be recorded for this saga:", collaboratorError);
+
+  publicOfferingsCache = null;
+  closeSagaReviewModal();
+  await loadWriterDashboard();
+  await renderFeaturedStories();
+};
+
+const rejectSagaApplication = async (application) => {
+  const user = await authActions.getCurrentUser();
+  if (!user || user.id !== application.lead_scribe_id) return;
+
+  const { error } = await supabase
+    .from("saga_applications")
+    .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+    .eq("id", application.id);
+
+  if (error) {
+    alert("The chapter could not be released: " + error.message);
+    return;
+  }
+
+  closeSagaReviewModal();
+  await loadWriterDashboard();
+};
+
+sagaApplicationForm?.addEventListener("submit", submitSagaApplication);
+closeSagaApplicationModalBtn?.addEventListener("click", closeSagaApplicationModal);
+cancelSagaApplicationBtn?.addEventListener("click", closeSagaApplicationModal);
+sagaApplicationModal?.addEventListener("click", (event) => {
+  if (event.target === sagaApplicationModal) closeSagaApplicationModal();
+});
+sparkForm?.addEventListener("submit", createOracleSpark);
+closeSparkModalBtn?.addEventListener("click", closeSparkModal);
+cancelSparkFormBtn?.addEventListener("click", closeSparkModal);
+sparkModal?.addEventListener("click", (event) => {
+  if (event.target === sparkModal) closeSparkModal();
+});
+closeSagaReviewModalBtn?.addEventListener("click", closeSagaReviewModal);
+sagaReviewModal?.addEventListener("click", (event) => {
+  if (event.target === sagaReviewModal) closeSagaReviewModal();
+});
+acceptSagaApplicationBtn?.addEventListener("click", () => {
+  if (currentSagaReviewApplication) approveSagaApplication(currentSagaReviewApplication);
+});
+releaseSagaApplicationBtn?.addEventListener("click", () => {
+  if (currentSagaReviewApplication) rejectSagaApplication(currentSagaReviewApplication);
+});
+
 // J27. Initial page setup.
 document.body.style.overflowY = "hidden";
 const bootstrapApp = async () => {
@@ -2882,6 +4263,7 @@ const bootstrapApp = async () => {
     const initialStoryId = getStoryIdFromPath() || params.get("story");
     const categoryFromUrl = params.get("category");
     const normalizedCategory = categoryFromUrl && shrineFilters[categoryFromUrl] ? categoryFromUrl : null;
+    const startsInCommunity = window.location.hash === "#community-view";
 
     await Promise.allSettled([
       withStartupTimeout(renderFeaturedStories(normalizedCategory || "all"), "Featured offerings"),
@@ -2895,12 +4277,12 @@ const bootstrapApp = async () => {
       content?.classList.add("visible");
       document.body.style.overflowY = "auto";
       await withStartupTimeout(openStory(initialStoryId, { updateUrl: !getStoryIdFromPath() }), "Initial story");
-    } else if (normalizedCategory) {
+    } else if (normalizedCategory || startsInCommunity) {
       hero?.classList.add("lifted");
       content?.classList.remove("hidden");
       content?.classList.add("visible");
       document.body.style.overflowY = "auto";
-      await withStartupTimeout(showView("home", "#explore"), "Category view");
+      await withStartupTimeout(startsInCommunity ? showView("community") : showView("home", "#explore"), "Initial view");
     }
   } catch (error) {
     console.error("Error during app startup:", error);
@@ -3157,7 +4539,7 @@ async function showWriterProfile(writerId) {
 
     const { data: posts = [], error: postError } = await supabase
         .from("posts")
-        .select("*, series(id, title, cover_url)")
+    .select("*, series(id, title, cover_url)")
         .eq("author_id", writerId)
         .in("status", ["published", "featured"])
         .order("created_at", { ascending: false });

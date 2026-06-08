@@ -218,10 +218,17 @@
                     <a href="./poems.html" class="visitor-nav">Poems</a>
                     <a href="#screen">Shrine Screen</a>
                     <a href="#write" class="visitor-nav">Write</a>
-                    <a href="#community" class="visitor-nav">Community</a>
+                    <a href="#community-view" id="nav-community">The Circle</a>
                     <a href="#dashboard-view" id="nav-dashboard" class="hidden auth-only">My Inkwell</a>
                     <a href="#scroll-view" id="nav-reader-profile" class="hidden auth-only">My Scroll</a>
                     <a href="#admin-view" id="nav-admin-link" class="hidden">Oracle's Chamber</a>
+                    <button id="nav-notifications" class="nav-icon-btn hidden auth-only" type="button" aria-label="Open shrine notices" title="Notices">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                            <path d="M10 21h4"></path>
+                        </svg>
+                        <span id="notification-count" class="notification-count hidden">0</span>
+                    </button>
                     <button id="nav-auth-trigger" class="nav-btn" type="button">Join Circle</button>
                 </div>
             </nav>
@@ -314,6 +321,7 @@
                             <p class="sidebar-label">Quick Actions</p>
                             <button id="sidebar-create-offering" class="sidebar-cta" type="button"><span class="sidebar-link-icon" aria-hidden="true">✍</span><span>New Offering</span></button>
                             <button id="sidebar-add-vision" class="sidebar-cta secondary" type="button"><span class="sidebar-link-icon" aria-hidden="true">◐</span><span>Add Vision</span></button>
+                            <button id="sidebar-communal-saga" class="sidebar-cta secondary" type="button"><span class="sidebar-link-icon" aria-hidden="true">☯</span><span>Communal Saga</span></button>
                         </div>
 
                         <div class="sidebar-footer">
@@ -339,6 +347,7 @@
                         <div class="dashboard-tabs" aria-label="Dashboard views">
                             <button class="tab-btn active" type="button" data-tab="written">Written Ink</button>
                             <button class="tab-btn" type="button" data-tab="visual">Visual Visions</button>
+                            <button class="tab-btn" type="button" data-tab="sagas">Communal Sagas</button>
                         </div>
 
                         <h3 id="writer-posts-label" class="sub-label">Your Current Ink</h3>
@@ -348,21 +357,85 @@
                             <h3 id="writer-visions-label" class="sub-label">Your Visual Visions</h3>
                             <div id="writer-visions-grid" class="story-grid" aria-live="polite"></div>
                         </div>
+
+                        <section id="communal-sagas-section" class="communal-sagas-dashboard hidden">
+                            <div class="dashboard-section-header">
+                                <div>
+                                    <h3 class="sub-label">Your Communal Sagas</h3>
+                                    <p class="dashboard-section-note">Open a world to the circle, set its laws, and witness submitted chapters.</p>
+                                </div>
+                            </div>
+                            <div class="saga-dashboard-actions">
+                                <button id="saga-dashboard-start" class="saga-choice-card" type="button">
+                                    <span class="eyebrow">Begin</span>
+                                    <strong>Start a Saga</strong>
+                                    <small>Open a new world and invite the circle.</small>
+                                </button>
+                                <button id="saga-dashboard-contribute" class="saga-choice-card" type="button">
+                                    <span class="eyebrow">Contribute</span>
+                                    <strong>Offer a Chapter</strong>
+                                    <small>Choose an ongoing saga and write the next turn.</small>
+                                </button>
+                            </div>
+                            <section id="saga-contribution-panel" class="saga-contribution-panel hidden">
+                                <h3 class="sub-label">Ongoing Communal Sagas</h3>
+                                <div id="saga-contribution-list" class="saga-contribution-list" aria-live="polite"></div>
+                            </section>
+                            <div id="writer-sagas-grid" class="writer-sagas-grid" aria-live="polite"></div>
+
+                            <section id="saga-approvals-section" class="saga-approvals-section">
+                                <h3 class="sub-label">Chapters Awaiting Witness</h3>
+                                <div id="saga-applications-list" class="saga-applications-list" aria-live="polite"></div>
+                            </section>
+                        </section>
                     </div>
                 </div>
             </section>
 
-            <!-- H08. Public community section -->
-            <section id="community" class="split-section public-view">
-                <div class="writer-spotlight">
-                    <p class="eyebrow">Writer Spotlight</p>
-                    <h2>Inkwalker</h2>
-                    <p>A profile shrine for writers, their works, badges, and readers who gather around their voice.</p>
+            <!-- H08. The Circle community rituals -->
+            <section id="community-view" class="hidden">
+                <div class="community-container">
+                    <header class="community-header">
+                        <button id="exit-community" class="text-btn" type="button">&larr; Back to Shrine</button>
+                        <div>
+                            <p class="eyebrow">The Circle</p>
+                            <h1 class="font-display">Sacred Rituals</h1>
+                            <p>Shrine, not a social feed. Gather softly around the fire.</p>
+                        </div>
+                    </header>
+
+                    <div class="circle-layout">
+                        <section class="midnight-fire" aria-labelledby="midnight-fire-title">
+                            <p class="eyebrow">The Midnight Fire</p>
+                            <div id="active-spark" class="fire-pit content-fade" aria-live="polite">
+                                <h2 id="midnight-fire-title" class="font-display">Opening the fire...</h2>
+                            </div>
+                            <div id="spark-echoes" class="spark-echoes content-fade" aria-live="polite"></div>
+                        </section>
+
+                        <aside class="witnessing" aria-labelledby="witnessing-title">
+                            <p class="eyebrow">The Witnessing</p>
+                            <h2 id="witnessing-title" class="font-display">Quiet movements</h2>
+                            <div id="witnessing-feed" class="witnessing-feed content-fade" aria-live="polite"></div>
+                        </aside>
+                    </div>
+
+                    <section class="ashes-section" aria-labelledby="ashes-title">
+                        <div class="section-heading">
+                            <p class="eyebrow">The Ashes</p>
+                            <h2 id="ashes-title">Archived fires</h2>
+                        </div>
+                        <div id="ashes-gallery" class="ashes-gallery content-fade" aria-live="polite"></div>
+                    </section>
+
+                    <section class="collaborative-sagas-section" aria-labelledby="collaborative-sagas-title">
+                        <div class="section-heading">
+                            <p class="eyebrow">Collaborative Sagas</p>
+                            <h2 id="collaborative-sagas-title">Legends with many hands</h2>
+                        </div>
+                        <div id="collaborative-sagas-list" class="collaborative-sagas-list content-fade" aria-live="polite"></div>
+                    </section>
                 </div>
-                <blockquote class="sacred-quote">
-                    <p id="daily-quote-text">"A story is a lantern. Hold it well, and it remembers the road."</p>
-                    <cite id="daily-quote-author">Quote of the Day</cite>
-                </blockquote>
             </section>
 
             <!-- H10. Public writing call-to-action -->
@@ -460,6 +533,8 @@
                             <button class="oracle-tab active" type="button" data-tab="submissions">Pending Offerings</button>
                             <button class="oracle-tab" type="button" data-tab="registry">The Registry</button>
                             <button class="oracle-tab" type="button" data-tab="featured">Featured Stills</button>
+                            <button class="oracle-tab" type="button" data-tab="sparks">Midnight Fires</button>
+                            <button class="oracle-tab" type="button" data-tab="sagas">Communal Sagas</button>
                         </nav>
                         <nav class="oracle-hub-nav">
                             <button class="oracle-tab" type="button" data-go-view="home" data-go-target="#explore">Explore Shrine</button>
@@ -559,6 +634,52 @@
                             <button id="send-reset-link" class="text-btn" type="button">Send Reset Link</button>
                         </div>
                     </form>
+
+                    <form id="notification-preferences-form" class="modal-form">
+                        <div class="form-section">
+                            <p class="auth-subtitle">What should reach you</p>
+                            <label class="notification-toggle">
+                                <input type="checkbox" data-notification-pref="notify_stories" checked>
+                                <span>New stories</span>
+                            </label>
+                            <label class="notification-toggle">
+                                <input type="checkbox" data-notification-pref="notify_poems" checked>
+                                <span>New poems</span>
+                            </label>
+                            <label class="notification-toggle">
+                                <input type="checkbox" data-notification-pref="notify_sagas" checked>
+                                <span>Communal sagas and chapters</span>
+                            </label>
+                            <label class="notification-toggle">
+                                <input type="checkbox" data-notification-pref="notify_sparks" checked>
+                                <span>Midnight Fire Sparks</span>
+                            </label>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button id="save-notification-preferences" class="cta-gold" type="submit">Save Notices</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="notifications-modal" class="modal-overlay hidden">
+                <div class="modal-card notification-card">
+                    <div class="modal-header">
+                        <h2 class="font-display">Shrine Notices</h2>
+                        <button id="close-notifications-modal" class="close-btn" type="button" aria-label="Close notices modal">&times;</button>
+                    </div>
+
+                    <div class="notification-layout notices-only">
+                        <section class="notification-panel" aria-labelledby="notification-list-title">
+                            <div class="notification-panel-header">
+                                <h3 id="notification-list-title" class="sub-label">Recent Signals</h3>
+                                <button id="mark-notifications-read" class="text-btn" type="button">Mark Read</button>
+                            </div>
+                            <div id="notifications-list" class="notifications-list" aria-live="polite"></div>
+                        </section>
+
+                    </div>
                 </div>
             </div>
 
@@ -619,6 +740,38 @@
                 </div>
             </div>
 
+            <div id="spark-modal" class="modal-overlay hidden">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2 class="font-display">Light the Midnight Fire</h2>
+                        <button id="close-spark-modal" class="close-btn" type="button" aria-label="Close spark modal">&times;</button>
+                    </div>
+
+                    <form id="spark-form" class="modal-form">
+                        <div class="form-section">
+                            <p class="auth-subtitle">Set one question before the circle.</p>
+                            <label class="editor-field-label" for="spark-title">
+                                Spark
+                                <input type="text" id="spark-title" name="title" class="editor-meta-input" placeholder="What is the shape of a story that never ends?" required>
+                            </label>
+                            <label class="editor-field-label" for="spark-description">
+                                Invitation
+                                <textarea id="spark-description" name="description" class="editor-meta-input wisdom-textarea" placeholder="Set the question before the circle..." required></textarea>
+                            </label>
+                            <label class="editor-field-label" for="spark-duration">
+                                Hours before the fire fades
+                                <input type="number" id="spark-duration" name="duration_hours" class="editor-meta-input" min="1" step="1" value="48">
+                            </label>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="text-btn" id="cancel-spark-form">Cancel</button>
+                            <button id="submit-spark" class="cta-gold" type="submit">Light the Fire</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- H14. Sacred reader view -->
 <section id="reader-view" class="hidden">
     <div class="reader-container">
@@ -667,6 +820,7 @@
                     <a id="share-facebook" class="share-btn share-icon-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" title="Facebook">f</a>
                     <a id="share-x" class="share-btn share-icon-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on X" title="X">X</a>
                 </div>
+                <button class="libation-btn" type="button">Pour a Libation</button>
                 <button id="toggle-comments" class="text-btn" type="button">Listen to the Circle (Comments)</button>
             </footer>
         </article>
@@ -717,6 +871,8 @@
                 <div class="scroll-container">
                     <header class="scroll-header">
                         <button id="exit-scroll" class="text-btn" type="button">&larr; Back to Shrine</button>
+                        <button id="reader-settings" class="text-btn" type="button">Settings</button>
+                        <button id="reader-logout" class="text-btn" type="button">Log Out</button>
                         <h1 id="scroll-username" class="font-display">The Listener</h1>
                         <span class="badge reader-badge">The Listener</span>
                         <p class="scroll-bio">A seeker of stories within the circle.</p>
@@ -853,6 +1009,11 @@
                                     <option value="monthly">Monthly release</option>
                                     <option value="complete">Complete series</option>
                                 </select>
+                                <label class="communal-saga-toggle">
+                                    <input type="checkbox" id="communal-saga">
+                                    <span>Open this series as a Communal Saga</span>
+                                </label>
+                                <textarea id="saga-rules" class="editor-meta-input saga-rules-textarea" placeholder="The laws of this world: tone, limits, characters, taboos, and what future Scribes must honor."></textarea>
                             </div>
                         </div>
 
@@ -894,6 +1055,74 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <div id="saga-application-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="font-display">Offer a Chapter</h2>
+                <button id="close-saga-application-modal" class="close-btn" type="button" aria-label="Close saga application modal">&times;</button>
+            </div>
+
+            <form id="saga-application-form" class="modal-form">
+                <div class="form-section">
+                    <p id="saga-application-context" class="auth-subtitle">Write the chapter you want the Lead Scribe to witness.</p>
+                    <label class="editor-field-label" for="saga-application-title">
+                        Chapter title
+                        <input type="text" id="saga-application-title" class="editor-meta-input" placeholder="Title of your chapter" required>
+                    </label>
+                    <label class="editor-field-label" for="saga-application-content">
+                        Chapter text
+                        <textarea id="saga-application-content" class="editor-meta-input saga-application-textarea" placeholder="Offer the next turn of the saga..." required></textarea>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="text-btn" id="cancel-saga-application">Cancel</button>
+                    <button id="submit-saga-application" class="cta-gold" type="submit">Offer Chapter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="saga-review-modal" class="modal-overlay hidden">
+        <div class="modal-card saga-review-card">
+            <div class="modal-header">
+                <h2 id="saga-review-title" class="font-display">Witness Chapter</h2>
+                <button id="close-saga-review-modal" class="close-btn" type="button" aria-label="Close saga review modal">&times;</button>
+            </div>
+
+            <div class="form-section">
+                <p id="saga-review-meta" class="auth-subtitle"></p>
+                <label class="editor-field-label" for="saga-review-title-input">
+                    Chapter title
+                    <input id="saga-review-title-input" class="editor-meta-input" type="text">
+                </label>
+                <label class="editor-field-label" for="saga-review-content">
+                    Chapter text
+                    <textarea id="saga-review-content" class="editor-meta-input saga-review-content"></textarea>
+                </label>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="text-btn" id="release-saga-application">Release</button>
+                <button id="accept-saga-application" class="cta-gold" type="button">Accept Chapter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="communal-saga-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="font-display">Communal Saga</h2>
+                <button id="close-communal-saga-modal" class="close-btn" type="button" aria-label="Close communal saga choice modal">&times;</button>
+            </div>
+            <div class="form-section">
+                <p class="auth-subtitle">Choose whether you want to start a new communal saga or contribute to an ongoing one.</p>
+                <button id="communal-saga-start-btn" class="cta-gold" type="button">Start a Saga</button>
+                <button id="communal-saga-contribute-btn" class="text-btn" type="button">Contribute to a Saga</button>
+            </div>
+        </div>
     </div>
     <script type="module" src="./src/main.js"></script>
 </body>
