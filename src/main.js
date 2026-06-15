@@ -348,10 +348,12 @@ const getReaderFriendlyContent = (content = "") => {
   return template.innerHTML.trim();
 };
 
-const getPostCoverImage = (post = currentOpenPost) =>
+const getPostCoverUrl = (post = currentOpenPost) =>
   toAbsoluteUrl(post?.series?.cover_url) ||
-  toAbsoluteUrl(getFirstImageFromContent(post?.content || "")) ||
-  getAbsoluteAssetUrl("/alo-logo-trans.png");
+  toAbsoluteUrl(getFirstImageFromContent(post?.content || ""));
+
+const getPostCoverImage = (post = currentOpenPost) =>
+  getPostCoverUrl(post) || getAbsoluteAssetUrl("/alo-logo-trans.png");
 
 const getShareTitle = (post = currentOpenPost) => {
   if (!post) return currentOpenPostTitle || "A story from alo";
@@ -852,9 +854,7 @@ const renderFeaturedStories = async (filterName = activeShrineFilter) => {
 
   offerings.forEach((story) => {
     const card = document.createElement("article");
-    const coverUrl = getStoryFormat(story) === "series"
-      ? story?.series?.cover_url || getFirstImageFromContent(story?.content || "")
-      : "";
+    const coverUrl = getPostCoverUrl(story);
     const header = document.createElement("div");
     const category = document.createElement("p");
     const title = document.createElement("h3");
@@ -3070,6 +3070,15 @@ async function openStory(postId, options = {}) {
       }
     : null;
   document.querySelector("#reader-category").textContent = getSeriesLabel(post);
+
+  const readerCover = document.querySelector("#reader-cover");
+  const coverUrl = getPostCoverUrl(post);
+  if (readerCover) {
+    readerCover.innerHTML = coverUrl
+      ? `<figure class="reader-cover-figure"><img class="reader-cover-image" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(getDisplayTitle(post))} cover art" loading="lazy"></figure>`
+      : "";
+  }
+
   document.querySelector("#reader-body").innerHTML = getReaderFriendlyContent(content);
   document.querySelector("#reading-time").textContent = `${calculateReadingTime(content)} min read`;
   await updateSeriesNavigation(post);
@@ -3969,7 +3978,7 @@ const openSparkModal = () => {
   document.body.style.overflow = "hidden";
 };
 
-const openCommunalSagaEditor = async () => {
+async function openCommunalSagaEditor() {
   await openEditor();
   postType.value = "series";
   setActiveStoryFormat("series");
@@ -3978,7 +3987,7 @@ const openCommunalSagaEditor = async () => {
   seriesTitle?.focus();
 };
 
-const loadSagaContributionChoices = async () => {
+async function loadSagaContributionChoices() {
   setDashboardTab("sagas");
   const user = await authActions.getCurrentUser();
   if (!sagaContributionList || !user) return;
