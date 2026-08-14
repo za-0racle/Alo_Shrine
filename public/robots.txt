@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://aloshrine.ink/sitemap.xml
+Sitemap: https://YOUR_DOMAIN_HERE/sitemap.xml
