@@ -4,6 +4,9 @@ export const projects = [
     category: "Sustainability",
     description:
       "A documented community-build project exploring how recovered plastic bottles filled with compacted material can be incorporated into masonry walls, connecting waste reuse with practical construction.",
+    problem: "Explore a practical reuse for discarded plastic bottles in community construction.",
+    approach: "Prepare filled bottles and incorporate them into a masonry wall during a documented community build.",
+    result: "Documented sustainability project.",
     technologies: ["Plastic Reuse", "Eco-Construction", "Community Project", "Masonry"],
     image: "/renewable (1).jpg",
     imageAlt: "Community members constructing a masonry wall with rows of filled plastic bottles",
@@ -18,10 +21,13 @@ export const projects = [
     liveLabel: "View project archive",
   },
   {
-    title: "Autonomous Waste Bin",
+    title: "Arduino Autonomous Waste Bin Prototype",
     category: "Robotics",
     description:
       "An Arduino-based prototype that explores touch-free waste disposal through sensing and controlled movement.",
+    problem: "Reduce the need to touch a waste-bin lid during use.",
+    approach: "Connect an ultrasonic sensor to an Arduino-controlled servo, with LED and buzzer feedback.",
+    result: "Educational prototype used to demonstrate sensing and controlled movement.",
     technologies: [
       "Arduino Uno",
       "Ultrasonic Sensor",
@@ -33,19 +39,25 @@ export const projects = [
     status: "Prototype",
   },
   {
-    title: "Smart Traffic Light",
+    title: "Arduino Smart Traffic Light",
     category: "IoT",
     description:
       "A practical traffic-light system built to demonstrate sensing, signalling and embedded control.",
+    problem: "Demonstrate how sensing can influence a traffic signalling sequence.",
+    approach: "Use an Arduino, ultrasonic sensor and LEDs to model detection and signal control.",
+    result: "Educational embedded-systems prototype.",
     technologies: ["Arduino Uno", "LEDs", "Ultrasonic Sensor", "Breadboard"],
     image: "",
     status: "Prototype",
   },
   {
-    title: "CADETI Portal",
+    title: "CADETI Member Portal",
     category: "Business Solutions",
     description:
       "A high-level web platform for member revalidation, registration and officer workflows, designed with privacy in mind.",
+    problem: "Organize member registration, revalidation and officer workflows in one web experience.",
+    approach: "Design a responsive platform with clear workflow entry points and privacy-conscious information architecture.",
+    result: "Live digital platform.",
     technologies: ["HTML", "CSS", "JavaScript", "Web Platform"],
     image: "/images/projects/cadeti-portal.png",
     imageAlt:
@@ -58,6 +70,9 @@ export const projects = [
     category: "Education",
     description:
       "Practical learning activities that introduce computational thinking through hands-on creation.",
+    problem: "Make early coding concepts easier for learners to understand.",
+    approach: "Use guided projects in visual coding and web fundamentals.",
+    result: "Ongoing education programme.",
     technologies: ["Scratch", "Tynker", "HTML", "CSS"],
     image: "",
     status: "Education Program",
@@ -67,6 +82,9 @@ export const projects = [
     category: "Education",
     description:
       "Learner-focused robotics projects connecting code, sensors and physical outcomes.",
+    problem: "Connect abstract code with visible, physical outcomes.",
+    approach: "Guide learners through Arduino, sensors and PictoBlox builds.",
+    result: "Ongoing education programme.",
     technologies: ["Arduino", "PictoBlox", "Sensors"],
     image: "",
     status: "Education Program",
@@ -76,6 +94,9 @@ export const projects = [
     category: "Creative Technology",
     description:
       "Experiments spanning animation, AI literacy and creative tools for young learners and beginners.",
+    problem: "Give beginners accessible entry points into creative computing.",
+    approach: "Explore animation, Roblox Studio and responsible AI literacy through small practical activities.",
+    result: "Developing learning programme.",
     technologies: ["Synfig", "Roblox Studio", "AI Literacy"],
     image: "",
     status: "Developing",

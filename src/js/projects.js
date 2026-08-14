@@ -25,7 +25,8 @@ function render(category = "All") {
     const gallery = project.gallery?.length
       ? `<div class="project-gallery" aria-label="${project.title} photo gallery">${project.gallery.map((item) => `<a href="${item.src}" target="_blank" rel="noopener noreferrer"><img src="${item.src}" alt="${item.alt}" width="640" height="480" loading="lazy"></a>`).join("")}</div>`
       : "";
-    const details = gallery || "<p>More project documentation and verified links will be added when available.</p>";
+    const summary = `<dl class="project-facts"><div><dt>Problem</dt><dd>${project.problem}</dd></div><div><dt>Approach</dt><dd>${project.approach}</dd></div><div><dt>Result / status</dt><dd>${project.result}</dd></div></dl>`;
+    const details = `${summary}${gallery}`;
 
     return `<article class="project-card reveal is-visible">${visual}<div class="project-body"><div class="project-meta"><span>${project.category}</span><span>${project.status}</span></div><h3>${project.title}</h3><p>${project.description}</p>${tags(project.technologies)}<div class="project-actions">${liveLink}<button class="text-link project-details" type="button" aria-expanded="false">View details <span>&nearr;</span></button></div><div class="project-more" hidden>${details}</div></div></article>`;
   }).join("");
