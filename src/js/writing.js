@@ -19,6 +19,6 @@ if (grid)
       const thumbnail = article.image
         ? `<a class="article-thumbnail" href="${article.url}" ${externalAttributes} tabindex="-1" aria-hidden="true"><img src="${article.image}" alt="${article.imageAlt || ""}" width="1536" height="1024" loading="lazy"></a>`
         : `<div class="article-icon">${icons.article}</div>`;
-      return `<article class="article-card ${article.featured ? "article-featured" : ""} reveal is-visible">${thumbnail}<div class="article-meta"><span>${article.category}</span>${publication}<time datetime="${article.date}">${formatDate(article.date)}</time><span>${article.readTime}</span></div><h2>${article.title}</h2><p>${article.excerpt}</p>${article.url ? `<a class="text-link" href="${article.url}" ${externalAttributes}>Read article &nearr;</a>` : '<span class="coming-soon">Coming soon</span>'}</article>`;
+      return `<article class="article-card ${article.featured ? "article-featured" : ""} reveal is-visible">${thumbnail}<div class="article-meta"><span>${article.category}</span>${publication}<time datetime="${article.date}">${formatDate(article.date)}</time><span>${article.readTime}</span></div><h2>${article.title}</h2><p>${article.excerpt}</p><a class="text-link" href="${article.url}" ${externalAttributes}>Read article &nearr;</a></article>`;
     })
     .join("");

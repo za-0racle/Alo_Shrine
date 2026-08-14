@@ -1,5 +1,5 @@
 import { projects } from "../data/projects.js";
-import { placeholderVisual, tags } from "./components.js";
+import { projectGraphic, tags } from "./components.js";
 
 const grid = document.querySelector("#project-grid");
 const filters = document.querySelector("#project-filters");
@@ -18,7 +18,7 @@ function render(category = "All") {
     const index = projects.indexOf(project);
     const visual = project.image
       ? `<div class="project-image"><img src="${project.image}" alt="${project.imageAlt || `${project.title} project preview`}" width="1440" height="900" loading="lazy"></div>`
-      : placeholderVisual(project.title, index);
+      : projectGraphic(project.title, index);
     const liveLink = project.liveUrl
       ? `<a class="project-live-link" href="${project.liveUrl}" target="_blank" rel="noopener noreferrer">${project.liveLabel || "Visit live website"} <span aria-hidden="true">&nearr;</span><span class="sr-only"> (opens in a new tab)</span></a>`
       : "";

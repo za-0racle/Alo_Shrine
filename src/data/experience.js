@@ -1,31 +1,5 @@
 export const experience = [
-  {
-    period: "November 2023 — Present",
-    organization:
-      "Ministry of Innovation, Science & Digital Economy, Ekiti State",
-    role: "Data Analyst",
-    description:
-      "Supporting data-informed work within the public-sector innovation and digital economy environment.",
-  },
-  {
-    period: "Professional Experience",
-    organization: "Creative Academy Ekiti",
-    role: "Faculty / Technology & Data Education",
-    description:
-      "Practical instruction in Microsoft Excel, Power BI and data-related learning.",
-  },
-  {
-    period: "Professional Experience",
-    organization: "Kings House Learning Center, Ota",
-    role: "Assistant Program Coordinator",
-    description:
-      "Supporting programs across coding, robotics, Cisco, IoT and technology education.",
-  },
-  {
-    period: "Founder",
-    organization: "Oracle TEK Global Solutions",
-    role: "Technology & Digital Solutions",
-    description:
-      "Providing practical technology, digital, creative and business-support services.",
-  },
+  { period: "May 2024 — Present", organization: "Kings House Learning Centre", role: "Instructor / Marketer", description: "Delivers Cisco networking courses, administers IoT examinations and develops school partnerships that increase the visibility and enrolment of the centre's technology programmes." },
+  { period: "February 2023 — April 2024", organization: "Ministry of Innovation, Science & Digital Economy, Ekiti State", role: "Data Analyst", description: "Analysed data trends, developed performance dashboards, supported innovation policy and trained staff to use data effectively across ministry initiatives." },
+  { period: "March 2015 — July 2020", organization: "Goshen Royal College", role: "IT Administrator", description: "Managed IT infrastructure, provided hardware, software and network support, implemented cybersecurity measures and helped academic teams integrate technology into teaching." },
 ];

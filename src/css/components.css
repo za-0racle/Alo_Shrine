@@ -1037,13 +1037,29 @@
 .article-meta span:first-child {
   color: var(--primary-2);
 }
-.coming-soon {
-  width: fit-content;
-  padding: 6px 10px;
-  border-radius: 999px;
+.organization-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #fff;
+  padding: 6px;
+}
+.organization-logo-wide {
+  width: 132px;
+}
+.organization-mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--primary-2);
   background: var(--surface-2);
-  color: var(--muted);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 800;
+  letter-spacing: .05em;
 }

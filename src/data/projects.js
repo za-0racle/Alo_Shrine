@@ -54,15 +54,6 @@ export const projects = [
     liveUrl: "https://cadetinitiativeorg.netlify.app/index.html",
   },
   {
-    title: "Data Dashboard Studies",
-    category: "Data & Analytics",
-    description:
-      "Dashboard and reporting exercises that turn demo datasets into clear visual stories and decisions.",
-    technologies: ["Excel", "Power BI", "DAX"],
-    image: "",
-    status: "Demo / Sample Data",
-  },
-  {
     title: "Coding Education",
     category: "Education",
     description:

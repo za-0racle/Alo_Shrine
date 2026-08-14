@@ -1,12 +1,4 @@
 export const education = [
-  {
-    qualification: "B.Tech Computer Engineering",
-    institution: "Ladoke Akintola University of Technology (LAUTECH)",
-    detail: "Second Class Lower",
-  },
-  {
-    qualification: "PGDE — English Education",
-    institution: "University of Ilorin",
-    detail: "Postgraduate Diploma in Education",
-  },
+  { qualification: "B.Tech Computer Engineering", institution: "Ladoke Akintola University of Technology (LAUTECH)", detail: "March 2014 — April 2020" },
+  { qualification: "M.Sc. Computer Science", institution: "Federal University of Agriculture, Abeokuta (FUNAAB)", detail: "In View" },
 ];

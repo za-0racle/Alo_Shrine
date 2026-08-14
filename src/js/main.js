@@ -91,8 +91,12 @@ window.addEventListener("scroll", syncHeader, { passive: true });
 
 document.querySelector("#contact-form")?.addEventListener("submit", (event) => {
   event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  const subject = encodeURIComponent(`Website enquiry: ${data.get("service")}`);
+  const body = encodeURIComponent(`Name: ${data.get("name")}\nEmail: ${data.get("email")}\nPhone: ${data.get("phone") || "Not provided"}\nService: ${data.get("service")}\n\n${data.get("message")}`);
+  window.location.href = `mailto:adedokunkhaleed@gmail.com?subject=${subject}&body=${body}`;
   const note = document.querySelector("#form-note");
   if (note)
     note.textContent =
-      "Thanks — the form is ready, but sending will be enabled once a form provider is connected.";
+      "Your email app has been opened with the enquiry details.";
 });
