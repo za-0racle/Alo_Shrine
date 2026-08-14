@@ -1,1 +1,6 @@
-export const contact = { email: "", phone: "", whatsapp: "", location: "Nigeria" };
+export const contact = {
+  email: "",
+  phone: "",
+  whatsapp: "",
+  location: "Nigeria",
+};

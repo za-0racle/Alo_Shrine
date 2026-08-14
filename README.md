@@ -25,4 +25,4 @@ To add a project, append an object to `src/data/projects.js` using an existing f
 
 The contact form validates locally but intentionally does not send until a backend or form provider is connected. Never place private API keys in frontend code.
 
-Run `npm run build` and deploy `dist/` to any static host. Replace `YOUR_DOMAIN_HERE` in canonical tags, `public/robots.txt` and `public/sitemap.xml` with the verified production domain.
+Run `npm run build` and deploy `dist/` to any static host. The canonical tags, robots file and sitemap are configured for `https://aloshrine.ink`.

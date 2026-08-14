@@ -1,1 +1,63 @@
-<!doctype html><html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skills | Khaleed Adedokun</title><meta name="description" content="Explore Khaleed Adedokun's skills in development, data analytics, IoT, robotics and technology education."><link rel="canonical" href="https://YOUR_DOMAIN_HERE/skills.html"><meta property="og:title" content="Skills | Khaleed Adedokun"><meta property="og:description" content="Development, analytics, connected technology and practical education."><meta property="og:image" content="/images/social-preview.svg"><link rel="icon" href="/favicon.svg"></head><body><div id="site-header"></div><main id="main-content"><section class="page-hero"><div class="container reveal"><span class="eyebrow">Skills & capabilities</span><h1>Tools are useful. Knowing when and why to use them matters more.</h1><p class="lead">An honest view of the technologies and methods I use, from established experience to areas still developing.</p></div></section><section class="section surface-section"><div class="container grid-2" id="skills-grid"></div></section><section class="section"><div class="container quote-block reveal"><span class="eyebrow">Approach</span><h2>Capability is not a percentage.</h2><p>I describe skills by practical familiarity — Experienced, Working Knowledge, Developing or Familiar — and continue improving through projects and teaching.</p></div></section></main><div id="site-footer"></div><script type="module" src="/src/js/main.js"></script><script type="module">import{skillGroups}from'/src/data/skills.js';document.querySelector('#skills-grid').innerHTML=skillGroups.map(g=>`<article class="card skill-group reveal is-visible"><div><span class="eyebrow">Capability area</span><h2 style="font-size:2rem;margin:16px 0 8px">${g.title}</h2><p>${g.description}</p></div><div class="skill-list">${g.skills.map(([s,l])=>`<div class="skill-item"><strong>${s}</strong><span>${l}</span></div>`).join('')}</div></article>`).join('')</script></body></html>
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Skills | Khaleed Adedokun</title>
+    <meta
+      name="description"
+      content="Explore Khaleed Adedokun's skills in development, data analytics, IoT, robotics and technology education."
+    />
+    <link rel="canonical" href="https://aloshrine.ink/skills.html" />
+    <meta property="og:title" content="Skills | Khaleed Adedokun" />
+    <meta
+      property="og:description"
+      content="Development, analytics, connected technology and practical education."
+    />
+    <meta property="og:image" content="/images/social-preview.svg" />
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+  <body>
+    <div id="site-header"></div>
+    <main id="main-content">
+      <section class="page-hero">
+        <div class="container reveal">
+          <span class="eyebrow">Skills & capabilities</span>
+          <h1>
+            Tools are useful. Knowing when and why to use them matters more.
+          </h1>
+          <p class="lead">
+            An honest view of the technologies and methods I use, from
+            established experience to areas still developing.
+          </p>
+        </div>
+      </section>
+      <section class="section surface-section">
+        <div class="container grid-2" id="skills-grid"></div>
+      </section>
+      <section class="section">
+        <div class="container quote-block reveal">
+          <span class="eyebrow">Approach</span>
+          <h2>Capability is not a percentage.</h2>
+          <p>
+            I describe skills by practical familiarity — Experienced, Working
+            Knowledge, Developing or Familiar — and continue improving through
+            projects and teaching.
+          </p>
+        </div>
+      </section>
+    </main>
+    <div id="site-footer"></div>
+    <script type="module" src="/src/js/main.js"></script>
+    <script type="module">
+      import { skillGroups } from "/src/data/skills.js";
+      import { techIcon } from "/src/js/components.js";
+      document.querySelector("#skills-grid").innerHTML = skillGroups
+        .map(
+          (g) =>
+            `<article class="card skill-group reveal is-visible"><div><span class="eyebrow">Capability area</span><h2 style="font-size:2rem;margin:16px 0 8px">${g.title}</h2><p>${g.description}</p></div><div class="skill-list">${g.skills.map(([s, l]) => `<div class="skill-item"><span class="skill-name">${techIcon(s)}<strong>${s}</strong></span><span>${l}</span></div>`).join("")}</div></article>`,
+        )
+        .join("");
+    </script>
+  </body>
+</html>
