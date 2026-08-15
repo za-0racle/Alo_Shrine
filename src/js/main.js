@@ -1,7 +1,3 @@
-import "../css/style.css";
-import "../css/components.css";
-import "../css/responsive.css";
-import "../css/animations.css";
 import {
   renderHeader,
   renderFooter,

@@ -29,10 +29,21 @@ for (const [file, [title, description, path]] of Object.entries(pages)) {
   html = html.replace(/<meta\s+name="description"\s+content="[\s\S]*?"\s*\/>/, `<meta name="description" content="${description}" />`);
   html = html.replace(/\s*<meta\s+property="og:[\s\S]*?\/>/g, "");
   html = html.replace(/\s*<meta\s+name="twitter:[\s\S]*?\/>/g, "");
+  html = html.replace(/\s*<meta\s+name="google-site-verification"[\s\S]*?\/>/g, "");
+  html = html.replace(/\s*<!-- Add Google Search Console verification meta tag here when available\. -->/g, "");
   html = html.replace(/\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
   const url = `${domain}${path}`;
-  const social = `\n    <meta property="og:type" content="website" />\n    <meta property="og:title" content="${title}" />\n    <meta property="og:description" content="${description}" />\n    <meta property="og:url" content="${url}" />\n    <meta property="og:image" content="${domain}/images/seo/og-image.jpg" />\n    <meta property="og:site_name" content="Khaleed O. Adedokun" />\n    <meta name="twitter:card" content="summary_large_image" />\n    <meta name="twitter:title" content="${title}" />\n    <meta name="twitter:description" content="${description}" />\n    <meta name="twitter:image" content="${domain}/images/seo/og-image.jpg" />\n    <!-- Add Google Search Console verification meta tag here when available. -->`;
+  const social = `\n    <meta property="og:type" content="website" />\n    <meta property="og:title" content="${title}" />\n    <meta property="og:description" content="${description}" />\n    <meta property="og:url" content="${url}" />\n    <meta property="og:image" content="${domain}/images/seo/og-image.jpg" />\n    <meta property="og:site_name" content="Khaleed O. Adedokun" />\n    <meta name="twitter:card" content="summary_large_image" />\n    <meta name="twitter:title" content="${title}" />\n    <meta name="twitter:description" content="${description}" />\n    <meta name="twitter:image" content="${domain}/images/seo/og-image.jpg" />\n    <meta name="google-site-verification" content="p_apiKfb-6GinyEILr_2B7mpTh9SYF_6jYnTGrkvWJ0" />`;
   html = html.replace(/(<link rel="canonical"[^>]*>)/, `$1${social}`);
   if (file === "index.html") html = html.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(graph)}</script>\n  </head>`);
   fs.writeFileSync(file, html);
+}
+
+for (const file of fs.readdirSync(".").filter((name) => name.endsWith(".html"))) {
+  let html = fs.readFileSync(file, "utf8");
+  if (!html.includes('href="/src/css/app.css"')) {
+    const firstPaint = `    <script>\n      try {\n        const savedTheme = localStorage.getItem("khaleed-theme");\n        if (savedTheme) document.documentElement.dataset.theme = savedTheme;\n      } catch {}\n    </script>\n    <link rel="stylesheet" href="/src/css/app.css" />\n`;
+    html = html.replace("  </head>", `${firstPaint}  </head>`);
+    fs.writeFileSync(file, html);
+  }
 }

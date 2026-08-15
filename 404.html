@@ -10,6 +10,13 @@
     />
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/favicon.svg" />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("khaleed-theme");
+        if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+      } catch {}
+    </script>
+    <link rel="stylesheet" href="/src/css/app.css" />
   </head>
   <body>
     <div id="site-header"></div>
